@@ -1,0 +1,225 @@
+```{r echo=FALSE, eval=TRUE, results='hide',include=FALSE}
+library(TMB)
+library(mgcv)
+library(Matrix)
+```
+
+
+## **North East Arctic Cod** 
+In this example you learn:
+
+* How to run SAM with XSAM-options for NEAcod
+* How to set quotas for NEAcod with XSAM options
+
+If you want to read trough the implementation of SAM, we recomend you look at this case study which elaborates a simplefied version of [SAM](https://github.com/skaug/tmb-case-studies/tree/master/SAM).
+
+
+To run a SAM model can be divided into five standard steps:
+
+1. Read data
+2. Set up SAM data
+3. Set up configurations
+4. Define parameters
+5. Fit SAM
+
+In this example we illustrate how to modify these parts to use settings from XSAM.
+
+***
+### Fit current used SAM model
+
+<details>  
+  <summary>Read data</summary>
+```r
+  cn<-read.ices("data/NEAcod/cn.dat")
+  cw<-read.ices("data/NEAcod/cw.dat")
+  dw<-read.ices("data/NEAcod/dw.dat")
+  lf<-read.ices("data/NEAcod/lf.dat")
+  lw<-read.ices("data/NEAcod/lw.dat")
+  mo<-read.ices("data/NEAcod/mo.dat")
+  nm<-read.ices("data/NEAcod/nm.dat")
+  pf<-read.ices("data/NEAcod/pf.dat")
+  pm<-read.ices("data/NEAcod/pm.dat")
+  sw<-read.ices("data/NEAcod/sw.dat")
+  surveys<-read.ices("data/NEAcod/survey.dat")
+```
+</details>
+
+<details>  
+  <summary>Setup SAM data</summary>
+```r
+  dat<-setup.sam.data(surveys=surveys,
+                      residual.fleet=cn, 
+                      prop.mature=mo, 
+                      stock.mean.weight=sw, 
+                      catch.mean.weight=cw, 
+                      dis.mean.weight=dw, 
+                      land.mean.weight=lw,
+                      prop.f=pf, 
+                      prop.m=pm, 
+                      natural.mortality=nm, 
+                      land.frac=lf)
+```
+</details>
+
+<details>  
+  <summary>Set configurations</summary>
+```r
+  conf<-loadConf(dat,"scripts/NEAcod/model.cfg", patch=TRUE)
+```
+</details>
+
+<details>  
+  <summary>Set parameters</summary>
+```r
+  par<-defpar(dat,conf)
+```
+</details>
+
+<details>  
+  <summary>Fit SAM</summary>
+```r
+  fit<-sam.fit(dat,conf,par)
+```
+</details>
+
+
+***
+
+### Fit current used SAM model with XSAM options
+First we read the data and configurations as for currently used SAM.
+<details>  
+  <summary>Read data</summary>
+```r
+  cn<-read.ices("data/NEAcod/cn.dat")
+  cw<-read.ices("data/NEAcod/cw.dat")
+  dw<-read.ices("data/NEAcod/dw.dat")
+  lf<-read.ices("data/NEAcod/lf.dat")
+  lw<-read.ices("data/NEAcod/lw.dat")
+  mo<-read.ices("data/NEAcod/mo.dat")
+  nm<-read.ices("data/NEAcod/nm.dat")
+  pf<-read.ices("data/NEAcod/pf.dat")
+  pm<-read.ices("data/NEAcod/pm.dat")
+  sw<-read.ices("data/NEAcod/sw.dat")
+  surveys<-read.ices("data/NEAcod/survey.dat")
+```
+</details>
+
+<details>  
+  <summary>Set currently used configurations</summary>
+```r
+  conf<-loadConf(dat,"scripts/NEAcod/model.cfg", patch=TRUE)
+```
+</details>
+
+#### Fit current used SAM model with external variance structures
+We have some knowledge of the uncertainty estimates of the commercial catches and the survey FLT15 from outside of the assessment model. 
+<details>  
+  <summary>Read variance estimates of catches ad FLT15</summary>
+```r
+  varC = as.matrix(read.table("data/NEAcod/variances/varCatch.txt", sep = " "))
+  varS1 = as.matrix(read.table("data/NEAcod/variances/varFLT15Cod.txt", sep = " "))
+```
+</details>
+
+<details>  
+  <summary>Set the variance estimates of catches ad FLT15 as invese weight attributes to the surveys</summary>
+```r
+  attributes(cn)$weight = 1/varC
+  attributes(surveys[[1]])$weight = 1/varS1
+```
+</details>
+
+<details>  
+  <summary>Setup SAM data</summary>
+```r
+  dat<-setup.sam.data(surveys=surveys,
+                      residual.fleet=cn, 
+                      prop.mature=mo, 
+                      stock.mean.weight=sw, 
+                      catch.mean.weight=cw, 
+                      dis.mean.weight=dw, 
+                      land.mean.weight=lw,
+                      prop.f=pf, 
+                      prop.m=pm, 
+                      natural.mortality=nm, 
+                      land.frac=lf)
+```
+  <em>Note: The external variance estimates of the catches and FLT15 is now included in `dat$weigth`.</em>
+</details>
+
+<details>  
+  <summary>Set parameters</summary>
+```r
+  par<-defpar(dat,conf)
+```
+</details>
+
+<details>  
+  <summary>Fit SAM</summary>
+```r
+  fit<-sam.fit(dat,conf,par)
+```
+</details>
+
+
+#### Use constant mean recruitmen option
+
+<details>  
+  <summary>Modify configurations, set parameters and run SAM</summary>
+```r
+  conf$stockRecruitmentModelCode = 3
+  par<-defpar(dat,conf)
+  fit<-sam.fit(dat,conf,par)
+```
+  <em>Note: The function `defpar(dat,conf)` sees that we want to use the mean recruitmen option, and set parameters accordingly. We are also able to select breakpoints were we say that there can be different mean recruitment before and after given years. Such break points can be included in `conf$constRecBreaks`</em>
+</details>
+
+#### Use separable F structure
+
+<details>  
+  <summary>Modify configurations, set parameters and run SAM</summary>
+```r
+  conf$corFlag = 3
+  par<-defpar(dat,conf)
+  fit3<-sam.fit(dat,conf,par)
+```
+  <em>Note: The function `defpar(dat,conf)` sees that we want to use the separable structure for fishing mortality, and set parameters accordingly.</em>
+</details>
+
+#### Remove the process error term
+
+<details>  
+  <summary>Modify initial values of the process error to a value approximately zero</summary>
+```r
+  par$logSdLogN = c(-0.35,-6)
+```
+</details>
+
+<details>  
+  <summary>Inform that we do not want to estimate the process error</summary>
+```r
+  map = list(logSdLogN = as.factor(c(0,NA)))
+```
+</details>
+
+<details>  
+  <summary>Fit SAM</summary>
+```r
+  fit<-sam.fit(dat,conf,par,map = map)
+```
+  <em>Note: The `map` variable informs `sam.fit` that the process error are to be kept to its initial value, which is approximately zero.</em>
+</details>
+
+
+
+
+
+***
+
+#### Set NEAcod quotas for 2020
+
+***
+
+
+
+
