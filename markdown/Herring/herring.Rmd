@@ -1,0 +1,270 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+```{r echo=FALSE, eval=TRUE, results='hide',include=FALSE}
+library(TMB)
+library(mgcv)
+library(Matrix)
+```
+
+
+## **Norwegian Spring Spawning Herring** 
+In this example you learn:
+
+* How to run SAM with XSAM-options for Norwegian Spring Spawning Herring
+* How to set quotas for herring with XSAM options
+* How to validate the assessment
+
+We highly recomend that you have a good overview of the therory behind SAM and how it is implemented. See [SAM](https://github.com/skaug/tmb-case-studies/tree/master/SAM) for a case study which elaborates the latent structure in the model, and illustrates how the observations inform the system.
+
+
+To run a SAM model can be divided into five standard steps:
+
+1. Read data
+2. Set up SAM data
+3. Set up configurations
+4. Define parameters
+5. Fit SAM
+
+In this example we illustrate how to modify these parts to use settings from XSAM.
+
+***
+### Fit standard SAM model
+
+<details>  
+  <summary>Read data</summary>
+```r
+  cn<-read.ices("data/Herring/cn.dat")
+  cw<-read.ices("data/Herring/cw.dat")
+  dw<-read.ices("data/Herring/dw.dat")
+  lf<-read.ices("data/Herring/lf.dat")
+  lw<-read.ices("data/Herring/lw.dat")
+  mo<-read.ices("data/Herring/mo.dat")
+  nm<-read.ices("data/Herring/nm.dat")
+  pf<-read.ices("data/Herring/pf.dat")
+  pm<-read.ices("data/Herring/pm.dat")
+  sw<-read.ices("data/Herring/sw.dat")
+  surveys<-read.ices("data/Herring/survey.dat")
+```
+</details>
+
+<details>  
+  <summary>Setup SAM data</summary>
+```r
+  dat<-setup.sam.data(surveys=surveys,
+                      residual.fleet=cn, 
+                      prop.mature=mo, 
+                      stock.mean.weight=sw, 
+                      catch.mean.weight=cw, 
+                      dis.mean.weight=dw, 
+                      land.mean.weight=lw,
+                      prop.f=pf, 
+                      prop.m=pm, 
+                      natural.mortality=nm, 
+                      land.frac=lf)
+```
+</details>
+
+<details>  
+  <summary>Set configurations</summary>
+```r
+  conf<-defcon(dat)
+```
+  <em>Note: Use default configurations.</em>
+</details>
+
+<details>  
+  <summary>Set parameters</summary>
+```r
+  par<-defpar(dat,conf)
+```
+</details>
+
+<details>  
+  <summary>Fit SAM</summary>
+```r
+  fit<-sam.fit(dat,conf,par)
+```
+</details>
+
+
+***
+
+### Fit SAM model with current used XSAM options
+<details>  
+  <summary>Read data</summary>
+```r
+  cn<-read.ices("data/herring/cn.dat")
+  cw<-read.ices("data/herring/cw.dat")
+  dw<-read.ices("data/herring/dw.dat")
+  lf<-read.ices("data/herring/lf.dat")
+  lw<-read.ices("data/herring/lw.dat")
+  mo<-read.ices("data/herring/mo.dat")
+  nm<-read.ices("data/herring/nm.dat")
+  pf<-read.ices("data/herring/pf.dat")
+  pm<-read.ices("data/herring/pm.dat")
+  sw<-read.ices("data/herring/sw.dat")
+  surveys<-read.ices("data/herring/survey.dat")
+```
+</details>
+
+<details>  
+  <summary>Read variance estimates</summary>
+```r
+  varC = as.matrix(read.table("data/herring/varC.txt", sep = " "))
+  varS1 = as.matrix(read.table("data/herring/varS1.txt", sep = " "))
+  varS2 = as.matrix(read.table("data/herring/varS2.txt", sep = " "))
+  varS3 = as.matrix(read.table("data/herring/varS3.txt", sep = " "))
+```
+</details>
+
+<details>  
+  <summary>Set the variance estimates as invese weight attributes to the catch and surveys</summary>
+```r
+  attributes(cn)$weight = 1/(varC)
+  attributes(surveys[[1]])$weight = 1/(varS1)
+  attributes(surveys[[2]])$weight = 1/(varS2)
+  attributes(surveys[[3]])$weight = 1/(varS3)
+```
+</details>
+
+<details>  
+  <summary>Setup SAM data</summary>
+```r
+  dat<-setup.sam.data(surveys=surveys,
+                      residual.fleet=cn, 
+                      prop.mature=mo, 
+                      stock.mean.weight=sw, 
+                      catch.mean.weight=cw, 
+                      dis.mean.weight=dw, 
+                      land.mean.weight=lw,
+                      prop.f=pf, 
+                      prop.m=pm, 
+                      natural.mortality=nm, 
+                      land.frac=lf)
+```
+  <em>Note: The external variance estimates are now included in `dat$weigth`.</em>
+</details>
+
+<details>  
+  <summary>Set currently used configurations</summary>
+```r
+  conf<-loadConf(dat,"scripts/herring/model.cfg", patch=TRUE)
+```
+  <em>Note: Use default configurationsUse same scaling factor for all surveys and catches </em>
+</details>
+
+<details>  
+  <summary>Set parameters</summary>
+```r
+  par<-defpar(dat,conf)
+```
+</details>
+
+<details>  
+  <summary>Set process error to approximately zero</summary>
+```r
+  par$logSdLogN = c(-0.35,-6)
+  map = list(logSdLogN = as.factor(c(0,NA)))
+```
+  <em>Note: The `map` variable informs `sam.fit` that the process error are to be kept to its initial value, which is approximately zero.</em>
+</details>
+
+<details>  
+  <summary>Fit SAM</summary>
+```r
+  fit<-sam.fit(dat,conf,par,map = map)
+```
+</details>
+
+
+***
+
+## TAC for 2020
+The target level of exploration is calculated with the following formula:
+\begin{align}
+  F_{tr}=
+  \begin{cases}
+  0.05 ,& \text{if } \text{SSB} \leq B_{lim}  \\
+  0.14- 0.09\frac{B_{pa} - \text{SSB}}{B_{pa}-\text{B}_{lim}} ,& \text{if } \text{B}_{lim} < \text{SSB} \leq B_{pa}  \\
+  0.14 ,& \text{if } \text{B}_{pa} < \text{SSB}
+  \end{cases}
+\end{align}
+where $\text{B}_{lim} = 2.5$ million tonnes. and $\text{B}_{pa} = 3.184$ million tonnes.
+
+
+In 2019 it is estimated to be caught 773 750 tons of herring. 
+<details>  
+  <summary>Predict SSB January 1st. 2020</summary>
+```r
+  set.seed(12345)
+  forecast(fit,catchval.exact = c(773.750,0))
+```
+We predict the SSB to be approximately 3.783 million tonnes in 1st january 2020. By using the target level of exploration formula abowe, we want to target the fishing mortalty to be $F_{tr} =  0.14$ in 2020. 
+</details>
+
+
+<details>  
+  <summary>Forecast catches in 2020 corresponding to $F_{tr}$</summary>
+```r
+  set.seed(12345)
+  forecast(fit,catchval.exact = c(773.750,NA), fval = c(NA,0.14))
+```
+Estimated catch in 2020 is 503 000 tonnes, which is the quota advice. 
+</details>
+
+
+***
+
+
+## Validate assessment model
+
+The quota adivce was based on a given set of configuration settings. We will now validate these settings and the model used. 
+
+Key features to investigate model performence are:
+
+1. OSA residuals
+2. AIC
+
+Key features to modify are:
+
+1. Coupling of observation variances
+2. Correlation structure of observations
+3. Model for fishing mortality
+
+
+Try several configuration settings, and argue which proposal is the best. You should also investigate retrospective plots and investigate with simulationsthat the model is able to estimate realisations of it self.
+
+
+
+***
+
+## Additional assignment: Estimate weights inside SAM and compare with external weights
+
+Remeber that the variance estimates are in this example smoothed by the following procedure. Let $\mu_{a,y}$ be the observation for age $a$ at year $y$ on natural scale, and let $v_{a,y}$ be the correspondning variance. We assume that
+\begin{align}
+\log v_{a,y} = \alpha + \beta \log(\mu_{a,y}). 
+\end{align}
+
+The equation above can be included internally in SAM. To estimate weights internally in SAM we need to install a development version of SAM. The development version can be installed by:
+
+```r
+devtools::install_github("fishfollower/SAM/stockassessment",ref = "varMeanLink")
+```
+
+Set the configurations to use internal weighting with the `meanWeigthObsV` option:
+
+```r
+  conf$meanWeightObsV = 1
+  conf$meanVarObsLink = conf$keyVarObs
+  par<-defpar(dat,conf)
+  fit<-sam.fit(dat,conf,par)
+```
+<em>Note: Internally in SAM, $\log(\mu_{a,y})$ is replaced with the expected observation for age $a$ in year $y$. A documentation for the procedure is given as a vignette [here](https://github.com/fishfollower/SAM/tree/vignettes/stockassessment/vignettes).</em>
+
+
+***
+
+

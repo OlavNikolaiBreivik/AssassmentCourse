@@ -1,3 +1,8 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
 ```{r echo=FALSE, eval=TRUE, results='hide',include=FALSE}
 library(TMB)
 library(mgcv)
@@ -144,7 +149,7 @@ We have some knowledge of the uncertainty estimates of the commercial catches an
                       natural.mortality=nm, 
                       land.frac=lf)
 ```
-  <em>Note: The external variance estimates of the catches and FLT15 is now included in `dat$weigth`.</em>
+  <em>Note: The external variance estimates of the catches and FLT15 are now included in `dat$weigth`.</em>
 </details>
 
 <details>  
@@ -216,10 +221,82 @@ We have some knowledge of the uncertainty estimates of the commercial catches an
 
 ***
 
-#### Set NEAcod quotas for 2020
+## Simplefied NEAcod quotas for 2020
+The target level of exploration is calculated with the following formula:
+\begin{align}
+  F_{tr}=
+  \begin{cases}
+  \frac{\text{SSB}}{B_{pa}} F_{msy} ,& \text{if } \text{SSB} \leq B_{pa}  \\
+  F_{msy} ,& \text{if } \text{B}_{pa} < \text{SSB} \leq 2B_{pa}  \\
+  F_{msy} (1+0.5\frac{\text{SSB} - 2\text{B}_{pa}}{\text{B}_{pa}}) ,& \text{if } 2\text{B}_{pa} < \text{SSB} \leq 3B_{pa}  \\
+  1.5F_{msy} ,& \text{if }  3\text{B}_{pa} \leq \text{SSB} 
+  \end{cases}
+\end{align}
+where $F_{msy} = 0.4$ and $\text{B}_{pa} = 460000$ tonnes.
+
+<details>  
+  <summary>Forecast SSB in beginning of year 2020</summary>
+The estimated catch in 2019 is 697 kt, and we can forcast the SSB in 2020 with use of the `forecast` function in SAM.
+```r
+  set.seed(12345)
+  forecast(fit,catchval = c(697000,0,0,0))
+```
+This gives an estimated SSB of 1386647. 
+
+</details>
+
+
+<details>  
+  <summary>Calculate $\text{F}_{tr}$</summary>
+  Since the estimated SSB in year 2020 is 1386647, we have that $F_{tr} = 1.5\text{F}_{msy} = 0.6$
+</details>
+
+<details>  
+  <summary>Forecast catches in year 2020 to 2022 with $\text{F} = \text{F}_{tr}$</summary>
+ We can then forecast the catches with $\text{F} = \text{F}_{tr} =  0.6$ in years 2020,2021 and 2022 with the `forecast` function in SAM:
+
+```r
+  set.seed(12345)
+  forecast(fit,catchval = c(697000,NA,NA,NA), fval = c(NA,0.6,0.6,0.6))
+```
+
+The average catch in years 2020 to 2022 is 778270 tonns of cod, which is used as the quota advice.
+</details>
+
+  
+***
+
 
 ***
 
+## Estimate weights inside SAM and compare with external weights
+
+Remeber that the variance estimates are in this example smoothed by the following procedure. Let $\mu_{a,y}$ be the observation for age $a$ at year $y$ on natural scale, and let $v_{a,y}$ be the correspondning variance. We assume that
+\begin{align}
+\log v_{a,y} = \alpha + \beta \log(\mu_{a,y}). 
+\end{align}
+It is futher estimated that $\alpha = 1.085$ and $\beta = 1.475$ outside of the assessment model, and these two parameters are used combined with observations to create `varC` and `varS1`.
+
+The equation above can be included internally in SAM. To estimate weights internally in SAM we need to install a development version of SAM. The development version can be installed by writing:
+
+```r
+devtools::install_github("fishfollower/SAM/stockassessment",ref = "varMeanLink")
+```
+
+set the configurations to use internal weighting with the `meanWeigthObsV` option.
+
+```r
+  conf$meanWeightObsV = 1
+  conf$meanVarObsLink = conf$keyVarObs
+  par<-defpar(dat,conf)
+  fit<-sam.fit(dat,conf,par)
+```
+<em>Note: Internally in SAM, $\log(\mu_{a,y})$ is replaced with the expected observation for age $a$ at year $y$.</em>
+
+By estimating the smooting paramters inside SAM we get $\alpha = 2.67$ and $\beta = 1.443$. Note that the $\alpha$-parameter differ quite a lot if it is estimated inside or outside of SAM. This is reasonable since the external variance parameters are further scaled in the assessment model. 
+
+
+***
 
 
 

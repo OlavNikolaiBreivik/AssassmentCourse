@@ -1,0 +1,57 @@
+library(stockassessment)
+cn<-read.ices("data/herring/cn.dat")
+cw<-read.ices("data/herring/cw.dat")
+dw<-read.ices("data/herring/dw.dat")
+lf<-read.ices("data/herring/lf.dat")
+lw<-read.ices("data/herring/lw.dat")
+mo<-read.ices("data/herring/mo.dat")
+nm<-read.ices("data/herring/nm.dat")
+pf<-read.ices("data/herring/pf.dat")
+pm<-read.ices("data/herring/pm.dat")
+sw<-read.ices("data/herring/sw.dat")
+surveys<-read.ices("data/herring/survey.dat")
+
+varC = as.matrix(read.table("data/herring/varC.txt", sep = " "))
+attributes(cn)$weight = 1/(varC)
+varS1 = as.matrix(read.table("data/herring/varS1.txt", sep = " "))
+attributes(surveys[[1]])$weight = 1/(varS1)
+varS2 = as.matrix(read.table("data/herring/varS2.txt", sep = " "))
+attributes(surveys[[2]])$weight = 1/(varS2)
+varS3 = as.matrix(read.table("data/herring/varS3.txt", sep = " "))
+attributes(surveys[[3]])$weight = 1/(varS3)
+
+dat<-setup.sam.data(surveys=surveys,
+                    residual.fleet=cn,
+                    prop.mature=mo,
+                    stock.mean.weight=sw,
+                    catch.mean.weight=cw,
+                    dis.mean.weight=dw,
+                    land.mean.weight=lw,
+                    prop.f=pf,
+                    prop.m=pm,
+                    natural.mortality=nm,
+                    land.frac=lf)
+
+
+conf = loadConf(dat,"scripts/Herring/model.cfg")
+par<-defpar(dat,conf)
+par$logSdLogN = c(-0.35, -5)
+map = list(logSdLogN = as.factor(c(0,NA)))
+fit<-sam.fit(dat,conf,par,map =map)
+
+set.seed(12345)
+forecast(fit, catchval = c(773.750,0))
+set.seed(12345)
+forecast(fit,catchval.exact = c(773.750,NA),fval = c(NA,0.14),nosim = 1000,ave.years = c(2016,2017,2018))
+
+
+
+conf = loadConf(dat,"scripts/Herring/modelModified.cfg")
+par<-defpar(dat,conf)
+par$logSdLogN = c(-0.35, -5)
+map = list(logSdLogN = as.factor(c(0,NA)))
+fit2<-sam.fit(dat,conf,par,map =map)
+
+AIC(fit,fit2)
+res = residuals(fit)
+res2 = residuals(fit2)
