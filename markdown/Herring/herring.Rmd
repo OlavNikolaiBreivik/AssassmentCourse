@@ -11,13 +11,13 @@ library(Matrix)
 
 
 ## **Norwegian Spring Spawning Herring** 
-In this example you learn:
+In this case study you learn to:
 
-* How to run SAM with XSAM-options for Norwegian Spring Spawning Herring
-* How to set quotas for herring with XSAM options
-* How to validate the assessment
+* run SAM with XSAM-options for Norwegian Spring Spawning Herring.
+* set TAC for herring with XSAM options.
+* validate a SAM assessment.
 
-We highly recomend that you have a good overview of the therory behind SAM and how it is implemented. See [SAM](https://github.com/skaug/tmb-case-studies/tree/master/SAM) for a case study which elaborates the latent structure in the model, and illustrates how the observations inform the system.
+In thic case study it is assumed that you have a good overview of how SAM works. If you want to learn more about the therory behind SAM and how it is implemented, see [https://github.com/skaug/tmb-case-studies/tree/master/SAM](https://github.com/skaug/tmb-case-studies/tree/master/SAM) for case studies which elaborate SAM. 
 
 
 To run a SAM model can be divided into five standard steps:
@@ -28,10 +28,10 @@ To run a SAM model can be divided into five standard steps:
 4. Define parameters
 5. Fit SAM
 
-In this example we illustrate how to modify these parts to use settings from XSAM.
+In this case study we illustrates how to modify these parts to use settings from XSAM. We start with fitting a standard SAM with the herring data, and then extend the model to include XSAM options currently used in the herring assessment. 
 
 ***
-### Fit standard SAM model
+### Standard SAM model
 
 <details>  
   <summary>Read data</summary>
@@ -76,7 +76,7 @@ In this example we illustrate how to modify these parts to use settings from XSA
 </details>
 
 <details>  
-  <summary>Set parameters</summary>
+  <summary>Define parameters</summary>
 ```r
   par<-defpar(dat,conf)
 ```
@@ -85,14 +85,14 @@ In this example we illustrate how to modify these parts to use settings from XSA
 <details>  
   <summary>Fit SAM</summary>
 ```r
-  fit<-sam.fit(dat,conf,par)
+  fitStandard<-sam.fit(dat,conf,par)
 ```
 </details>
 
 
 ***
 
-### Fit SAM model with current used XSAM options
+### SAM model with currently used XSAM options
 <details>  
   <summary>Read data</summary>
 ```r
@@ -145,7 +145,7 @@ In this example we illustrate how to modify these parts to use settings from XSA
                       natural.mortality=nm, 
                       land.frac=lf)
 ```
-  <em>Note: The external variance estimates are now included in `dat$weigth`.</em>
+  <em>Note: The external variance estimates are now included in `dat$weigth`. When we later fit SAM, the model will use these variance estimates when weighting the data sources.</em>
 </details>
 
 <details>  
@@ -153,11 +153,11 @@ In this example we illustrate how to modify these parts to use settings from XSA
 ```r
   conf<-loadConf(dat,"scripts/herring/model.cfg", patch=TRUE)
 ```
-  <em>Note: Use default configurationsUse same scaling factor for all surveys and catches </em>
+  <em>Note: Key features here are `corFlag`, `stockRecruitmentModelCode` and `keyVarObs`. Make sure you understand how these settings are used to define the model. </em>
 </details>
 
 <details>  
-  <summary>Set parameters</summary>
+  <summary>Define parameters</summary>
 ```r
   par<-defpar(dat,conf)
 ```
@@ -175,12 +175,51 @@ In this example we illustrate how to modify these parts to use settings from XSA
 <details>  
   <summary>Fit SAM</summary>
 ```r
-  fit<-sam.fit(dat,conf,par,map = map)
+  fitCurrent<-sam.fit(dat,conf,par,map = map)
 ```
 </details>
 
 
 ***
+## Evaluate assessment
+The assessment is based on a given set of configuration settings. We will now validate these settings and the model used. In this section we will look at the following three key features:
+
+1. AIC
+2. OSA residuals
+3. Retrospective patterns
+
+<details>  
+  <summary>AIC</summary>
+```r
+  AIC(fitStandard, fitCurrent)
+```
+</details>
+
+
+
+<details>  
+  <summary>Retrospective patterns</summary>
+```r
+  retroStandard = retro(fitStandard,year = 7) #Convergence fails. TODO: SAM uses a shortcut, can include a "slow"-option here
+  retroCurrent = retro(fitCurrent,year = 7)
+  plot(retroStandard)
+  plot(retroCurrent)
+```
+</details>
+
+<details>  
+  <summary>OSA-residals</summary>
+```r
+  resStandard = residuals(fitStandard) 
+  resCurrent = residuals(fitCurrent)  #TODO: Something wrong with the residuals using current settings.
+  plot(resStandard)
+  plot(resCurrent)
+```
+
+</details>
+
+***
+
 
 ## TAC for 2020
 The target level of exploration is calculated with the following formula:
@@ -202,7 +241,7 @@ In 2019 it is estimated to be caught 773 750 tons of herring.
   set.seed(12345)
   forecast(fit,catchval.exact = c(773.750,0))
 ```
-We predict the SSB to be approximately 3.783 million tonnes in 1st january 2020. By using the target level of exploration formula abowe, we want to target the fishing mortalty to be $F_{tr} =  0.14$ in 2020. 
+We predict the SSB to be approximately 3.783 million tonnes in 1st january 2020. By using the target level of exploration formula above, we want to target the fishing mortalty to $F_{tr} =  0.14$ in 2020. 
 </details>
 
 
@@ -212,31 +251,33 @@ We predict the SSB to be approximately 3.783 million tonnes in 1st january 2020.
   set.seed(12345)
   forecast(fit,catchval.exact = c(773.750,NA), fval = c(NA,0.14))
 ```
-Estimated catch in 2020 is 503 000 tonnes, which is the quota advice. 
+Estimated catch in 2020 is 503 000 tonnes, which is the advised TAC. 
 </details>
 
 
 ***
 
 
-## Validate assessment model
+## Propose new settings settings
 
-The quota adivce was based on a given set of configuration settings. We will now validate these settings and the model used. 
 
-Key features to investigate model performence are:
-
-1. OSA residuals
-2. AIC
-
-Key features to modify are:
+Propose new configuration settings for Norwegian Spring Spawning Herring. Key features to modify are:
 
 1. Coupling of observation variances
 2. Correlation structure of observations
 3. Model for fishing mortality
 
 
-Try several configuration settings, and argue which proposal is the best. You should also investigate retrospective plots and investigate with simulationsthat the model is able to estimate realisations of it self.
+Propose several configuration settings, and argue which proposal is the best. You should also investigate retrospective plots and investigate with simulations that the model is able to estimate itself.
 
+<details>  
+  <summary>Simulation study</summary>
+```r
+  simStandard = simstudy(fitStandard,nsim = 10)
+  ssbplot(simStandard)
+```
+    ![](simStandardHerring.png)
+</details>
 
 
 ***
@@ -251,13 +292,12 @@ Remeber that the variance estimates are in this example smoothed by the followin
 The equation above can be included internally in SAM. To estimate weights internally in SAM we need to install a development version of SAM. The development version can be installed by:
 
 ```r
-devtools::install_github("fishfollower/SAM/stockassessment",ref = "varMeanLink")
+devtools::install_github("fishfollower/SAM/stockassessment",ref = "FprocVarMeanLink")
 ```
 
 Set the configurations to use internal weighting with the `meanWeigthObsV` option:
 
 ```r
-  conf$meanWeightObsV = 1
   conf$meanVarObsLink = conf$keyVarObs
   par<-defpar(dat,conf)
   fit<-sam.fit(dat,conf,par)

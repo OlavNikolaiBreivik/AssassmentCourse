@@ -1,4 +1,38 @@
 library(stockassessment)
+#Run standard SAM
+cn<-read.ices("data/herring/cn.dat")
+cw<-read.ices("data/herring/cw.dat")
+dw<-read.ices("data/herring/dw.dat")
+lf<-read.ices("data/herring/lf.dat")
+lw<-read.ices("data/herring/lw.dat")
+mo<-read.ices("data/herring/mo.dat")
+nm<-read.ices("data/herring/nm.dat")
+pf<-read.ices("data/herring/pf.dat")
+pm<-read.ices("data/herring/pm.dat")
+sw<-read.ices("data/herring/sw.dat")
+surveys<-read.ices("data/herring/survey.dat")
+
+
+dat<-setup.sam.data(surveys=surveys,
+                    residual.fleet=cn,
+                    prop.mature=mo,
+                    stock.mean.weight=sw,
+                    catch.mean.weight=cw,
+                    dis.mean.weight=dw,
+                    land.mean.weight=lw,
+                    prop.f=pf,
+                    prop.m=pm,
+                    natural.mortality=nm,
+                    land.frac=lf)
+
+
+conf = defcon(dat)
+par<-defpar(dat,conf)
+fitStandard<-sam.fit(dat,conf,par)
+
+
+
+#Run SAM with XSAM-options
 cn<-read.ices("data/herring/cn.dat")
 cw<-read.ices("data/herring/cw.dat")
 dw<-read.ices("data/herring/dw.dat")
@@ -37,21 +71,37 @@ conf = loadConf(dat,"scripts/Herring/model.cfg")
 par<-defpar(dat,conf)
 par$logSdLogN = c(-0.35, -5)
 map = list(logSdLogN = as.factor(c(0,NA)))
-fit<-sam.fit(dat,conf,par,map =map)
+fitCurrent<-sam.fit(dat,conf,par,map =map)
 
+
+#Fit sam with settings given in modelModified.cfg
+conf = loadConf(dat,"scripts/Herring/modelModified.cfg")
+par<-defpar(dat,conf)
+fitNew<-sam.fit(dat,conf,par)
+
+#Validation of assessment and settings configurations
+AIC(fitStandard,fitCurrent)  #AIC
+
+retroStandard = retro(fitStandard,year = 7) #Retro
+retroCurrent = retro(fitCurrent,year = 7)
+plot(retroStandard)
+plot(retroCurrent)
+
+resStandard = residuals(fitStandard) #OSA residuals
+resCurrent = residuals(fitCurrent)
+plot(resStandard)
+plot(resCurrent)
+
+#Simulation study
+simStandard = simstudy(fitStandard,nsim = 10)
+ssbplot(simStandard)
+
+
+
+
+#Forecast
 set.seed(12345)
 forecast(fit, catchval = c(773.750,0))
 set.seed(12345)
 forecast(fit,catchval.exact = c(773.750,NA),fval = c(NA,0.14),nosim = 1000,ave.years = c(2016,2017,2018))
 
-
-
-conf = loadConf(dat,"scripts/Herring/modelModified.cfg")
-par<-defpar(dat,conf)
-par$logSdLogN = c(-0.35, -5)
-map = list(logSdLogN = as.factor(c(0,NA)))
-fit2<-sam.fit(dat,conf,par,map =map)
-
-AIC(fit,fit2)
-res = residuals(fit)
-res2 = residuals(fit2)
