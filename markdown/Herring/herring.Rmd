@@ -7,6 +7,9 @@ output:
 library(TMB)
 library(mgcv)
 library(Matrix)
+library(stockassessment)
+load("fitStandard.Rda")
+load("fitCurrent.Rda")
 ```
 
 
@@ -14,8 +17,8 @@ library(Matrix)
 In this case study you learn to:
 
 * run SAM with XSAM-options for Norwegian Spring Spawning Herring.
-* set TAC for herring with XSAM options.
 * validate a SAM assessment.
+* set TAC for herring with XSAM options.
 
 In thic case study it is assumed that you have a good overview of how SAM works. If you want to learn more about the therory behind SAM and how it is implemented, see [https://github.com/skaug/tmb-case-studies/tree/master/SAM](https://github.com/skaug/tmb-case-studies/tree/master/SAM) for case studies which elaborate SAM. 
 
@@ -190,12 +193,22 @@ The assessment is based on a given set of configuration settings. We will now va
 
 <details>  
   <summary>AIC</summary>
-```r
+```{r}
   AIC(fitStandard, fitCurrent)
 ```
+  <em>Note: The currently used settings has moch lower AIC, meaning that the model fits data significantly better.</em>
 </details>
 
+<details>  
+  <summary>OSA-residals</summary>
+```r
+  resStandard = residuals(fitStandard) 
+  resCurrent = residuals(fitCurrent)  #TODO: Something wrong when fixing sd_N.
+  plot(resStandard)
+  plot(resCurrent)
+```
 
+</details>
 
 <details>  
   <summary>Retrospective patterns</summary>
@@ -205,18 +218,10 @@ The assessment is based on a given set of configuration settings. We will now va
   plot(retroStandard)
   plot(retroCurrent)
 ```
+    ![](retroCurrent.png)
 </details>
 
-<details>  
-  <summary>OSA-residals</summary>
-```r
-  resStandard = residuals(fitStandard) 
-  resCurrent = residuals(fitCurrent)  #TODO: Something wrong with the residuals using current settings.
-  plot(resStandard)
-  plot(resCurrent)
-```
 
-</details>
 
 ***
 
@@ -249,7 +254,7 @@ We predict the SSB to be approximately 3.783 million tonnes in 1st january 2020.
   <summary>Forecast catches in 2020 corresponding to $F_{tr}$</summary>
 ```r
   set.seed(12345)
-  forecast(fit,catchval.exact = c(773.750,NA), fval = c(NA,0.14))
+  forecast(fit,catchval.exact = c(773.750,NA), fval = c(NA,0.14)) #TODO: no option in SAM to use F-bar weighted with N
 ```
 Estimated catch in 2020 is 503 000 tonnes, which is the advised TAC. 
 </details>
@@ -282,12 +287,13 @@ Propose several configuration settings, and argue which proposal is the best. Yo
 
 ***
 
-## Additional assignment: Estimate weights inside SAM and compare with external weights
+## Additional assignment: Estimate weights inside SAM
 
-Remeber that the variance estimates are in this example smoothed by the following procedure. Let $\mu_{a,y}$ be the observation for age $a$ at year $y$ on natural scale, and let $v_{a,y}$ be the correspondning variance. We assume that
+The external variance estimates are in this example smoothed by the following procedure. Let $\mu_{a,y}$ be the observation for age $a$ at year $y$ on natural scale, and let $v_{a,y}$ be the correspondning variance. We assume that
 \begin{align}
-\log v_{a,y} = \alpha + \beta \log(\mu_{a,y}). 
+ v_{a,y} = \alpha \mu_{a,y}^\beta, 
 \end{align}
+and estimate $\alpha$ and $\beta$ outside of SAM. 
 
 The equation above can be included internally in SAM. To estimate weights internally in SAM we need to install a development version of SAM. The development version can be installed by:
 
