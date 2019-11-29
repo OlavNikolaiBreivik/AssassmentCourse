@@ -26,10 +26,10 @@ dat<-setup.sam.data(surveys=surveys,
                     land.frac=lf)
 
 
-conf = defcon(dat)
+conf = loadConf(dat,"scripts/Herring/confStandard.cfg")
 par<-defpar(dat,conf)
 fitStandard<-sam.fit(dat,conf,par)
-
+#save(fitStandard,file = "markdown/Herring/fitStandard.Rda")
 
 
 #Run SAM with XSAM-options
@@ -73,16 +73,17 @@ par$logSdLogN = c(-0.35, -5)
 map = list(logSdLogN = as.factor(c(0,NA)))
 fitCurrent<-sam.fit(dat,conf,par,map =map)
 
-
-#Fit sam with settings given in modelModified.cfg
+#Fit SAM with settings given in modelModified.cfg
 conf = loadConf(dat,"scripts/Herring/modelModified.cfg")
 par<-defpar(dat,conf)
 fitNew<-sam.fit(dat,conf,par)
 
+
+
 #Validation of assessment and settings configurations
 AIC(fitStandard,fitCurrent)  #AIC
 
-retroStandard = retro(fitStandard,year = 7) #Retro
+retroStandard = retro(fitStandard,year =7) #Retro
 retroCurrent = retro(fitCurrent,year = 7)
 plot(retroStandard)
 plot(retroCurrent)
@@ -97,11 +98,9 @@ simStandard = simstudy(fitStandard,nsim = 10)
 ssbplot(simStandard)
 
 
-
-
 #Forecast
 set.seed(12345)
-forecast(fit, catchval = c(773.750,0))
+forecast(fitCurrent, catchval = c(773.750,0)) #TODO: forecast fails with master-version when sd_N is fixed
 set.seed(12345)
-forecast(fit,catchval.exact = c(773.750,NA),fval = c(NA,0.14),nosim = 1000,ave.years = c(2016,2017,2018))
+forecast(fitCurrent,catchval.exact = c(773.750,NA),fval = c(NA,0.14),nosim = 1000,ave.years = c(2016,2017,2018))
 

@@ -417,8 +417,8 @@ summary {
 </details>
 <details>
 <p><summary>Set configurations</summary></p>
-<pre class="r"><code>  conf&lt;-defcon(dat)</code></pre>
-<em>Note: Use default configurations.</em>
+<pre class="r"><code>  conf = loadConf(dat,&quot;scripts/Herring/confStandard.cfg&quot;)</code></pre>
+<em>Note: Use almost the default settings, we will later encounter some convergence issues if we use the default settings.</em>
 </details>
 <details>
 <p><summary>Define parameters</summary></p>
@@ -508,10 +508,10 @@ summary {
 <details>
 <p><summary>AIC</summary></p>
 <pre class="r"><code>  AIC(fitStandard, fitCurrent)</code></pre>
-<pre><code>##             df     AIC
-## fitStandard 27 1617.12
-## fitCurrent  33 1592.16</code></pre>
-<em>Note: The currently used settings has moch lower AIC, meaning that the model fits data significantly better.</em>
+<pre><code>##             df      AIC
+## fitStandard 30 1519.289
+## fitCurrent  33 1592.160</code></pre>
+<em>Note: The relatively standard used settings has much lower AIC, meaning that the model fits data significantly better.</em>
 </details>
 <details>
 <p><summary>OSA-residals</summary></p>

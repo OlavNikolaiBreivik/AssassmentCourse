@@ -73,9 +73,9 @@ In this case study we illustrates how to modify these parts to use settings from
 <details>  
   <summary>Set configurations</summary>
 ```r
-  conf<-defcon(dat)
+  conf = loadConf(dat,"scripts/Herring/confStandard.cfg")
 ```
-  <em>Note: Use default configurations.</em>
+  <em>Note: Use almost the default settings, we will later encounter some convergence issues if we use the default settings.</em>
 </details>
 
 <details>  
@@ -196,14 +196,14 @@ The assessment is based on a given set of configuration settings. We will now va
 ```{r}
   AIC(fitStandard, fitCurrent)
 ```
-  <em>Note: The currently used settings has moch lower AIC, meaning that the model fits data significantly better.</em>
+  <em>Note: The relatively standard used settings give much lower AIC, meaning that the model fits data significantly better.</em>
 </details>
 
 <details>  
   <summary>OSA-residals</summary>
 ```r
   resStandard = residuals(fitStandard) 
-  resCurrent = residuals(fitCurrent)  #TODO: Something wrong when fixing sd_N.
+  resCurrent = residuals(fitCurrent)  
   plot(resStandard)
   plot(resCurrent)
 ```
