@@ -213,7 +213,7 @@ The assessment is based on a given set of configuration settings. We will now va
 <details>  
   <summary>Retrospective patterns</summary>
 ```r
-  retroStandard = retro(fitStandard,year = 7) #Convergence fails. TODO: SAM uses a shortcut, can include a "slow"-option here
+  retroStandard = retro(fitStandard,year = 7) 
   retroCurrent = retro(fitCurrent,year = 7)
   plot(retroStandard)
   plot(retroCurrent)
