@@ -4,9 +4,6 @@ output:
   pdf_document: default
 ---
 ```{r echo=FALSE, eval=TRUE, results='hide',include=FALSE}
-library(TMB)
-library(mgcv)
-library(Matrix)
 library(stockassessment)
 load("fitStandard.Rda")
 load("fitCurrent.Rda")
@@ -121,6 +118,7 @@ In this case study we illustrates how to modify these parts to use settings from
   varS2 = as.matrix(read.table("data/herring/varS2.txt", sep = " "))
   varS3 = as.matrix(read.table("data/herring/varS3.txt", sep = " "))
 ```
+  <em>Note: The external variance estimates are in this case study smoothed with the formula $v_{a,y} = \alpha \mu_{a,y}^\beta$, where $\alpha$ and $\beta$ are estimated outside of the assessment model. </em>
 </details>
 
 <details>  
@@ -225,6 +223,29 @@ The assessment is based on a given set of configuration settings. We will now va
 
 ***
 
+## Propose new settings
+
+
+Propose new configuration settings for Norwegian Spring Spawning Herring. Key features to modify are:
+
+1. Coupling of observation variances
+2. Correlation structure of observations
+3. Model for fishing mortality
+
+
+Propose several configuration settings, and argue which proposal is the best. You should also investigate retrospective plots and investigate with simulations that the model is able to estimate itself.
+
+<details>  
+  <summary>Simulation study</summary>
+```r
+  simStandard = simstudy(fitStandard,nsim = 10)
+  ssbplot(simStandard)
+```
+    ![](simStandardHerring.png)
+</details>
+
+
+***
 
 ## TAC for 2020
 The target level of exploration is calculated with the following formula:
@@ -263,29 +284,6 @@ Estimated catch in 2020 is 503 000 tonnes, which is the advised TAC.
 ***
 
 
-## Propose new settings settings
-
-
-Propose new configuration settings for Norwegian Spring Spawning Herring. Key features to modify are:
-
-1. Coupling of observation variances
-2. Correlation structure of observations
-3. Model for fishing mortality
-
-
-Propose several configuration settings, and argue which proposal is the best. You should also investigate retrospective plots and investigate with simulations that the model is able to estimate itself.
-
-<details>  
-  <summary>Simulation study</summary>
-```r
-  simStandard = simstudy(fitStandard,nsim = 10)
-  ssbplot(simStandard)
-```
-    ![](simStandardHerring.png)
-</details>
-
-
-***
 
 ## Additional assignment: Estimate weights inside SAM
 
@@ -295,7 +293,7 @@ The external variance estimates are in this example smoothed by the following pr
 \end{align}
 and estimate $\alpha$ and $\beta$ outside of SAM. 
 
-The equation above can be included internally in SAM. To estimate weights internally in SAM we need to install a development version of SAM. The development version can be installed by:
+The restriction above can be included internally in SAM. To estimate weights internally in SAM we need to install a development version of SAM. The development version can be installed by:
 
 ```r
 devtools::install_github("fishfollower/SAM/stockassessment",ref = "FprocVarMeanLink")
@@ -308,7 +306,7 @@ Set the configurations to use internal weighting with the `meanWeigthObsV` optio
   par<-defpar(dat,conf)
   fit<-sam.fit(dat,conf,par)
 ```
-<em>Note: Internally in SAM, $\log(\mu_{a,y})$ is replaced with the expected observation for age $a$ in year $y$. A documentation for the procedure is given as a vignette [here](https://github.com/fishfollower/SAM/tree/vignettes/stockassessment/vignettes).</em>
+<em>Note: Internally in SAM, $\mu_{a,y}$ is replaced with the expected observation for age $a$ in year $y$. A documentation for the procedure is given as a vignette [here](https://github.com/fishfollower/SAM/tree/vignettes/stockassessment/vignettes).</em> Note also that only the link between the mean and variance is used with this option, and not the external variance estimates. 
 
 
 ***
