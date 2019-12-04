@@ -13,9 +13,9 @@ load("fitCurrent.Rda")
 ## **Norwegian Spring Spawning Herring** 
 In this case study you learn to:
 
-* run SAM with XSAM-options for Norwegian Spring Spawning Herring.
+* run SAM for Norwegian Spring Spawning Herring.
 * validate a SAM assessment.
-* set TAC for herring with XSAM options.
+* set TAC for herring.
 
 In thic case study it is assumed that you have a good overview of how SAM works. If you want to learn more about the therory behind SAM and how it is implemented, see [https://github.com/skaug/tmb-case-studies/tree/master/SAM](https://github.com/skaug/tmb-case-studies/tree/master/SAM) for case studies which elaborate SAM. 
 
@@ -194,7 +194,7 @@ The assessment is based on a given set of configuration settings. We will now va
 ```{r}
   AIC(fitStandard, fitCurrent)
 ```
-  <em>Note: The relatively standard used settings give much lower AIC, meaning that the model fits data significantly better.</em>
+  <em>Note: The standard used settings give much lower AIC, meaning that the model fits data significantly better.</em>
 </details>
 
 <details>  
@@ -205,6 +205,11 @@ The assessment is based on a given set of configuration settings. We will now va
   plot(resStandard)
   plot(resCurrent)
 ```
+  <em>Note: It seems to be less structure in the OSA residuals when using the standard settings, which indicates that the standard settings are more appropopriate.</em>
+    ![](resStandard.png)
+    ![](resCurrent.png)
+
+
 
 </details>
 
@@ -216,10 +221,31 @@ The assessment is based on a given set of configuration settings. We will now va
   plot(retroStandard)
   plot(retroCurrent)
 ```
+  <em>Note: It seems to be more retrospective patterns when using the current settings, which indicates that the standard settings are more appropopriate.</em>
+    ![](retroStandard.png)
+    <br>
+    <br>
+    <br>
+
     ![](retroCurrent.png)
+
 </details>
 
 
+<br> 
+
+In the Norwegian Spring Spawning herring assessment it is used three survey indices in addition to the commercial catch data. We can investigate the effect of removing one or more of these surveys from the assessment model by using the `leaveout` function in SAM.
+
+<details>  
+  <summary>Leaveout</summary>
+```r
+  leavoutStandard= leaveout(fitStandard)
+  plot(leavoutStandard)
+```
+  <em>Note: Survey `FeedingareasintheNorwegianSeainMay` seems to be the survey with solely most information.</em>
+    ![](leaveoutStandard.png)
+
+</details>
 
 ***
 
@@ -231,18 +257,12 @@ Propose new configuration settings for Norwegian Spring Spawning Herring. Key fe
 1. Coupling of observation variances
 2. Correlation structure of observations
 3. Model for fishing mortality
+4. Usage of external variances
+5. Include or exclude process error
+6. Recruitment
 
 
-Propose several configuration settings, and argue which proposal is the best. You should also investigate retrospective plots and investigate with simulations that the model is able to estimate itself.
-
-<details>  
-  <summary>Simulation study</summary>
-```r
-  simStandard = simstudy(fitStandard,nsim = 10)
-  ssbplot(simStandard)
-```
-    ![](simStandardHerring.png)
-</details>
+Propose several configuration settings, and argue which proposal is the best. 
 
 
 ***
@@ -283,7 +303,12 @@ Estimated catch in 2020 is 503 000 tonnes, which is the advised TAC.
 
 ***
 
+## Additional assignment: Include what is discussed in [Aldrin et al. (2019)](https://www.sciencedirect.com/science/article/abs/pii/S0165783618302224?via%3Dihub)
 
+
+In [Aldrin et al. (2019)](https://www.sciencedirect.com/science/article/abs/pii/S0165783618302224?via%3Dihub) it is discussed to modify the observation predictions to be expectation correct. This can be performed by shifiting the predictions with $e^{0.5\sigma^2}$, where $\sigma^2$ is the corresponding variance of the log-observation. Clone the [SAM](https://github.com/fishfollower/SAM) repository and make a new branch with expectation correct predictions. Investigate what effect this has on the assessment.
+
+In [Aldrin et al. (2019)](https://www.sciencedirect.com/science/article/abs/pii/S0165783618302224?via%3Dihub) it also discussed to modify the observation equations to include the process error. Clone the [SAM](https://github.com/fishfollower/SAM) repository and make a new branch where a trasformed version of the process error is inculded in the observation equeations. Investigate what effect this has on the assessment.
 
 ## Additional assignment: Estimate weights inside SAM
 
@@ -291,7 +316,7 @@ The external variance estimates are in this example smoothed by the following pr
 \begin{align}
  v_{a,y} = \alpha \mu_{a,y}^\beta, 
 \end{align}
-and estimate $\alpha$ and $\beta$ outside of SAM. 
+and estimate $\alpha$ and $\beta$ outside of SAM. The estimated external variances are furhter used in SAM to weight the likelihood contributions from each observation.
 
 The restriction above can be included internally in SAM. To estimate weights internally in SAM we need to install a development version of SAM. The development version can be installed by:
 
