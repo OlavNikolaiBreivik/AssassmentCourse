@@ -25,12 +25,9 @@ dat<-setup.sam.data(surveys=surveys,
                     natural.mortality=nm,
                     land.frac=lf)
 
-
 conf = loadConf(dat,"scripts/Herring/confStandard.cfg")
 par<-defpar(dat,conf)
 fitStandard<-sam.fit(dat,conf,par)
-#save(fitStandard,file = "markdown/Herring/fitStandard.Rda")
-
 
 #Run SAM with XSAM-options
 cn<-read.ices("data/herring/cn.dat")
@@ -73,6 +70,7 @@ par$logSdLogN = c(-0.35, -5)
 map = list(logSdLogN = as.factor(c(0,NA)))
 fitCurrent<-sam.fit(dat,conf,par,map =map)
 
+
 #Fit SAM with settings given in modelModified.cfg
 conf = loadConf(dat,"scripts/Herring/modelModified.cfg")
 par<-defpar(dat,conf)
@@ -83,19 +81,25 @@ fitNew<-sam.fit(dat,conf,par)
 #Validation of assessment and settings configurations
 AIC(fitStandard,fitCurrent)  #AIC
 
-retroStandard = retro(fitStandard,year =7) #Retro
-retroCurrent = retro(fitCurrent,year = 7)
-plot(retroStandard)
-plot(retroCurrent)
-
 resStandard = residuals(fitStandard) #OSA residuals
 resCurrent = residuals(fitCurrent)
 plot(resStandard)
+mtext("OSA residuals standard settings", line = 1,at = 0, cex = 2.5)
 plot(resCurrent)
+mtext("OSA residuals current settings", line = 1,at = 0, cex = 2.5)
 
-#Simulation study
-simStandard = simstudy(fitStandard,nsim = 10)
-ssbplot(simStandard)
+retroStandard = retro(fitStandard,year =7) #Retro
+retroCurrent = retro(fitCurrent,year = 7)
+plot(retroStandard)
+mtext("Retro standard settings", line = 2,at = 2003, cex = 2.5)
+plot(retroCurrent)
+mtext("Retro current settings",  line = 2,at = 2003, cex = 2.5)
+
+leaveoutStandard= leaveout(fitStandard)
+plot(leaveoutStandard)
+mtext("Leaveout standard settings",  line = 2,at = 2003, cex = 2.5)
+
+
 
 
 #Forecast
