@@ -4,19 +4,21 @@ output:
   pdf_document: default
 ---
 ```{r echo=FALSE, eval=TRUE, results='hide',include=FALSE}
-library(TMB)
-library(mgcv)
-library(Matrix)
+library(stockassessment)
+load("fitStandard.Rda")
+load("fitWithVar.Rda")
 ```
 
 
 ## **North East Arctic Cod** 
-In this example you learn:
+In this example you learn how to:
 
-* How to run SAM with XSAM-options for NEAcod
-* How to set quotas for NEAcod with XSAM options
+* run SAM for NEAcod
+* validate a SAM assessment.
+* set TAC for NEAcod
 
-If you want to read trough the implementation of SAM, we recomend you look at this case study which elaborates a simplefied version of [SAM](https://github.com/skaug/tmb-case-studies/tree/master/SAM).
+
+In thic case study it is assumed that you have a good overview of how SAM works. If you want to learn more about the therory behind SAM and how it is implemented, see [https://github.com/skaug/tmb-case-studies/tree/master/SAM](https://github.com/skaug/tmb-case-studies/tree/master/SAM) for case studies which elaborate SAM. 
 
 
 To run a SAM model can be divided into five standard steps:
@@ -27,10 +29,10 @@ To run a SAM model can be divided into five standard steps:
 4. Define parameters
 5. Fit SAM
 
-In this example we illustrate how to modify these parts to use settings from XSAM.
+In this case study we illustrates how to modify these parts to utilize different structures in the data. We start with fitting a standard SAM with the cod data, and then look at the effect of modifying the model configurations. 
 
 ***
-### Fit current used SAM model
+### Fit standard SAM model
 
 <details>  
   <summary>Read data</summary>
@@ -69,9 +71,10 @@ In this example we illustrate how to modify these parts to use settings from XSA
 <details>  
   <summary>Set configurations</summary>
 ```r
-  conf<-loadConf(dat,"scripts/NEAcod/model.cfg", patch=TRUE)
+  conf = defcon(dat)
 ```
 </details>
+
 
 <details>  
   <summary>Set parameters</summary>
@@ -79,6 +82,7 @@ In this example we illustrate how to modify these parts to use settings from XSA
   par<-defpar(dat,conf)
 ```
 </details>
+
 
 <details>  
   <summary>Fit SAM</summary>
@@ -90,8 +94,8 @@ In this example we illustrate how to modify these parts to use settings from XSA
 
 ***
 
-### Fit current used SAM model with XSAM options
-First we read the data and configurations as for currently used SAM.
+### Fit SAM model with XSAM options
+In this example we include external variance estimates and default SAM configurations. 
 <details>  
   <summary>Read data</summary>
 ```r
@@ -110,28 +114,14 @@ First we read the data and configurations as for currently used SAM.
 </details>
 
 <details>  
-  <summary>Set currently used configurations</summary>
-```r
-  conf<-loadConf(dat,"scripts/NEAcod/model.cfg", patch=TRUE)
-```
-</details>
-
-#### Fit current used SAM model with external variance structures
-We have some knowledge of the uncertainty estimates of the commercial catches and the survey FLT15 from outside of the assessment model. 
-<details>  
-  <summary>Read variance estimates of catches ad FLT15</summary>
+  <summary>Include variance estimates</summary>
 ```r
   varC = as.matrix(read.table("data/NEAcod/variances/varCatch.txt", sep = " "))
-  varS1 = as.matrix(read.table("data/NEAcod/variances/varFLT15Cod.txt", sep = " "))
-```
-</details>
-
-<details>  
-  <summary>Set the variance estimates of catches ad FLT15 as invese weight attributes to the surveys</summary>
-```r
   attributes(cn)$weight = 1/varC
+  varS1 = as.matrix(read.table("data/NEAcod/variances/varFLT15Cod.txt", sep = " "))
   attributes(surveys[[1]])$weight = 1/varS1
 ```
+  <em>Note: We only have variance estimates of catch and survey FLT15.</em>
 </details>
 
 <details>  
@@ -149,7 +139,14 @@ We have some knowledge of the uncertainty estimates of the commercial catches an
                       natural.mortality=nm, 
                       land.frac=lf)
 ```
-  <em>Note: The external variance estimates of the catches and FLT15 are now included in `dat$weigth`.</em>
+</details>
+
+<details>  
+  <summary>Set configurations</summary>
+```r
+  conf = defcon(dat)
+```
+  <em>Note: We use default settings, the only XSAM setting here used are the inclution of the external variance estimates.</em>
 </details>
 
 <details>  
@@ -162,67 +159,77 @@ We have some knowledge of the uncertainty estimates of the commercial catches an
 <details>  
   <summary>Fit SAM</summary>
 ```r
-  fit<-sam.fit(dat,conf,par)
+  fitWithVar<-sam.fit(dat,conf,par)
 ```
 </details>
 
+***
+### Evaluate assessment
+The assessment is based on a given set of configuration settings. We will now validate these settings and the model used. In this section we will look at the following three key features:
 
-#### Use constant mean recruitmen option
-
-<details>  
-  <summary>Modify configurations, set parameters and run SAM</summary>
-```r
-  conf$stockRecruitmentModelCode = 3
-  par<-defpar(dat,conf)
-  fit<-sam.fit(dat,conf,par)
-```
-  <em>Note: The function `defpar(dat,conf)` sees that we want to use the mean recruitmen option, and set parameters accordingly. We are also able to select breakpoints were we say that there can be different mean recruitment before and after given years. Such break points can be included in `conf$constRecBreaks`</em>
-</details>
-
-#### Use separable F structure
+1. AIC
+2. OSA residuals
+3. Retrospective patterns
 
 <details>  
-  <summary>Modify configurations, set parameters and run SAM</summary>
-```r
-  conf$corFlag = 3
-  par<-defpar(dat,conf)
-  fit3<-sam.fit(dat,conf,par)
+  <summary>AIC</summary>
+```{r}
+  AIC(fitStandard, fitWithVar)
 ```
-  <em>Note: The function `defpar(dat,conf)` sees that we want to use the separable structure for fishing mortality, and set parameters accordingly.</em>
-</details>
-
-#### Remove the process error term
-
-<details>  
-  <summary>Modify initial values of the process error to a value approximately zero</summary>
-```r
-  par$logSdLogN = c(-0.35,-6)
-```
+  <em>Note: Using the external variance estimates gives much lower AIC, meaning that the model fits data significantly better.</em>
 </details>
 
 <details>  
-  <summary>Inform that we do not want to estimate the process error</summary>
+  <summary>OSA-residals</summary>
 ```r
-  map = list(logSdLogN = as.factor(c(0,NA)))
+  resStandard = residuals(fitStandard) 
+  resfitWithVar = residuals(fitWithVar)  
+  plot(resStandard)
+  plot(resWithVar)
 ```
+  <em>Note: It is slightly less structure when including the external variance estimates, indicating an improvment.</em>
+  
+    ![](residualsStandard.png)
+    ![](residualsWithVar.png)
+    
+
 </details>
 
 <details>  
-  <summary>Fit SAM</summary>
+  <summary>Retrospective patterns</summary>
 ```r
-  fit<-sam.fit(dat,conf,par,map = map)
+  retroStandard = retro(fitStandard,year = 7) 
+  retroCurrent = retro(fitWithVar,year = 7)
+  plot(retroStandard)
+  plot(retroWithVar)
 ```
-  <em>Note: The `map` variable informs `sam.fit` that the process error are to be kept to its initial value, which is approximately zero.</em>
+  <em>Note: More allarming retrospecitve patterns when including the variances.</em>
+
+    ![](retroStandard.png)
+    ![](retroWithVar.png)
 </details>
 
+***
 
 
+## Propose new settings
+
+Try several configuration settings for North East Arctic cod and argue which configuration setting you think is most appropriate. Key features to modify are:
+
+1. Coupling of observation variances
+2. Correlation structure of observations
+4. Usage of external variances
+
+You can obtain the currenty used configuration settings by typing:  
+```r
+conf<-loadConf(dat,"scripts/NEAcod/model.cfg", patch=TRUE)
+```
 
 
 ***
 
-## Simplefied NEAcod quotas for 2020
-The target level of exploration is calculated with the following formula:
+## TAC for 2020
+The TAC depends on the model configurations. In this example we have used the configurations currently used in assessment. The target level of exploration is calculated with the following formula:
 \begin{align}
   F_{tr}=
   \begin{cases}
@@ -233,6 +240,8 @@ The target level of exploration is calculated with the following formula:
   \end{cases}
 \end{align}
 where $F_{msy} = 0.4$ and $\text{B}_{pa} = 460000$ tonnes.
+
+The following recipe is used for determining TAC. First we estimte the abundance per 1. January 2020. Then we set $F_{tr}$ by using the formula above. Then we estimate the catch for the next three years by assuming the fishing mortality to be equal $F_{tr}$. The TAC is set equal the average of the predicted catches in these three years.  
 
 <details>  
   <summary>Forecast SSB in beginning of year 2020</summary>
@@ -263,40 +272,32 @@ This gives an estimated SSB of 1386647.
 The average catch in years 2020 to 2022 is 778270 tonns of cod, which is used as the quota advice.
 </details>
 
-  
 ***
 
+## Additional assignment: Include a link between mean and variance inside SAM
 
-***
-
-## Estimate weights inside SAM and compare with external weights
-
-Remeber that the variance estimates are in this example smoothed by the following procedure. Let $\mu_{a,y}$ be the observation for age $a$ at year $y$ on natural scale, and let $v_{a,y}$ be the correspondning variance. We assume that
+The external variance estimates used in this case study are smoothed versions of the external variances estimates. The smooting is perfomed with the following procedure: Let $\mu_{a,y}$ be the observation for age $a$ at year $y$ on natural scale, and let $v_{a,y}$ be the correspondning variance. We assume that
 \begin{align}
-\log v_{a,y} = \alpha + \beta \log(\mu_{a,y}). 
+ v_{a,y} = \alpha \mu_{a,y}^\beta, 
 \end{align}
-It is futher estimated that $\alpha = 1.085$ and $\beta = 1.475$ outside of the assessment model, and these two parameters are used combined with observations to create `varC` and `varS1`.
+and estimate $\alpha$ and $\beta$ outside of SAM. The smoothed external variances are furhter used in SAM to weight the likelihood contributions from each observation.
 
-The equation above can be included internally in SAM. To estimate weights internally in SAM we need to install a development version of SAM. The development version can be installed by writing:
+The relation between the mean and variance above can be included internally in SAM. To estimate weights internally in SAM we need to install a development version of SAM. The development version can be installed by:
 
 ```r
-devtools::install_github("fishfollower/SAM/stockassessment",ref = "varMeanLink")
+devtools::install_github("fishfollower/SAM/stockassessment",ref = "FprocVarMeanLink")
 ```
 
-set the configurations to use internal weighting with the `meanWeigthObsV` option.
+Set the configurations to use internal weighting with the `meanWeigthObsV` option and run SAM:
 
 ```r
-  conf$meanWeightObsV = 1
   conf$meanVarObsLink = conf$keyVarObs
   par<-defpar(dat,conf)
   fit<-sam.fit(dat,conf,par)
 ```
-<em>Note: Internally in SAM, $\log(\mu_{a,y})$ is replaced with the expected observation for age $a$ at year $y$.</em>
+<em>Note: Internally in SAM, $\mu_{a,y}$ is replaced with the expected observation for age $a$ in year $y$. A documentation for the procedure is given as a vignette [here](https://github.com/fishfollower/SAM/tree/vignettes/stockassessment/vignettes).</em> Note also that only the link between the mean and variance is used with this option, and not the external variance estimates. 
 
-By estimating the smooting paramters inside SAM we get $\alpha = 2.67$ and $\beta = 1.443$. Note that the $\alpha$-parameter differ quite a lot if it is estimated inside or outside of SAM. This is reasonable since the external variance parameters are further scaled in the assessment model. 
-
+Compare the assessment with usage of the external variances and with use of the internal mean-variance-link.
 
 ***
-
-
 
