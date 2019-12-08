@@ -118,7 +118,7 @@ In this case study we illustrates how to modify these parts to use settings from
   varS2 = as.matrix(read.table("data/herring/varS2.txt", sep = " "))
   varS3 = as.matrix(read.table("data/herring/varS3.txt", sep = " "))
 ```
-  <em>Note: The external variance estimates are in this case study smoothed with the formula $v_{a,y} = \alpha \mu_{a,y}^\beta$, where $\alpha$ and $\beta$ are estimated outside of the assessment model. </em>
+  <em>Note: The external variance estimates are in this case study smoothed with the formula $v_{a,y} = \alpha \mu_{a,y}^\beta$, where $\alpha$ and $\beta$ are estimated outside of the assessment model and $\mu$ are the corresponding observations. </em>
 </details>
 
 <details>  
@@ -205,7 +205,7 @@ The assessment is based on a given set of configuration settings. We will now va
   plot(resStandard)
   plot(resCurrent)
 ```
-  <em>Note: It seems to be less structure in the OSA residuals when using the standard settings, which indicates that the standard settings are more appropopriate.</em>
+  <em>Note: It is less structure in the OSA residuals when using the standard settings, which indicates that the standard settings are more appropopriate.</em>
     ![](resStandard.png)
     ![](resCurrent.png)
 
@@ -221,7 +221,7 @@ The assessment is based on a given set of configuration settings. We will now va
   plot(retroStandard)
   plot(retroCurrent)
 ```
-  <em>Note: It seems to be more retrospective patterns when using the current settings, which indicates that the standard settings are more appropopriate.</em>
+  <em>Note: It is less retrospective patterns when using the standard settings, which indicates that the standard settings are more appropopriate.</em>
     ![](retroStandard.png)
     <br>
     <br>
@@ -242,7 +242,7 @@ In the Norwegian Spring Spawning herring assessment it is used three survey indi
   leavoutStandard= leaveout(fitStandard)
   plot(leavoutStandard)
 ```
-  <em>Note: Survey `FeedingareasintheNorwegianSeainMay` seems to be the survey with solely most information.</em>
+  <em>Note: Survey `FeedingareasintheNorwegianSeainMay` seems to be the survey with most information.</em>
     ![](leaveoutStandard.png)
 
 </details>
@@ -310,21 +310,21 @@ In [Aldrin et al. (2019)](https://www.sciencedirect.com/science/article/abs/pii/
 
 In [Aldrin et al. (2019)](https://www.sciencedirect.com/science/article/abs/pii/S0165783618302224?via%3Dihub) it also discussed to modify the observation equations to include the process error. Clone the [SAM](https://github.com/fishfollower/SAM) repository and make a new branch where a trasformed version of the process error is inculded in the observation equeations. Investigate what effect this has on the assessment.
 
-## Additional assignment: Estimate weights inside SAM
+## Additional assignment: Include a link between mean and variance inside SAM
 
-The external variance estimates are in this example smoothed by the following procedure. Let $\mu_{a,y}$ be the observation for age $a$ at year $y$ on natural scale, and let $v_{a,y}$ be the correspondning variance. We assume that
+The external variance estimates used in the Norwegian Spring Spawning hering assessment are smoothed versions of the external variances estimates. The smooting is perfomed with the following procedure: Let $\mu_{a,y}$ be the observation for age $a$ at year $y$ on natural scale, and let $v_{a,y}$ be the correspondning variance. We assume that
 \begin{align}
  v_{a,y} = \alpha \mu_{a,y}^\beta, 
 \end{align}
-and estimate $\alpha$ and $\beta$ outside of SAM. The estimated external variances are furhter used in SAM to weight the likelihood contributions from each observation.
+and estimate $\alpha$ and $\beta$ outside of SAM. The smoothed external variances are furhter used in SAM to weight the likelihood contributions from each observation.
 
-The restriction above can be included internally in SAM. To estimate weights internally in SAM we need to install a development version of SAM. The development version can be installed by:
+The relation between the mean and variance above can be included internally in SAM. To estimate weights internally in SAM we need to install a development version of SAM. The development version can be installed by:
 
 ```r
 devtools::install_github("fishfollower/SAM/stockassessment",ref = "FprocVarMeanLink")
 ```
 
-Set the configurations to use internal weighting with the `meanWeigthObsV` option:
+Set the configurations to use internal weighting with the `meanWeigthObsV` option and run SAM:
 
 ```r
   conf$meanVarObsLink = conf$keyVarObs
@@ -333,6 +333,7 @@ Set the configurations to use internal weighting with the `meanWeigthObsV` optio
 ```
 <em>Note: Internally in SAM, $\mu_{a,y}$ is replaced with the expected observation for age $a$ in year $y$. A documentation for the procedure is given as a vignette [here](https://github.com/fishfollower/SAM/tree/vignettes/stockassessment/vignettes).</em> Note also that only the link between the mean and variance is used with this option, and not the external variance estimates. 
 
+Comare the assessment with usage of the external variances and with use of the internal mean-variance-link.
 
 ***
 
