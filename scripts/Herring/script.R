@@ -1,16 +1,26 @@
 library(stockassessment)
+
+
+#For windows user
+if(Sys.info()['sysname'] == 'Windows'){
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+  }
+
+
+source('../utils.R')
+
 #Run standard SAM
-cn<-read.ices("data/herring/cn.dat")
-cw<-read.ices("data/herring/cw.dat")
-dw<-read.ices("data/herring/dw.dat")
-lf<-read.ices("data/herring/lf.dat")
-lw<-read.ices("data/herring/lw.dat")
-mo<-read.ices("data/herring/mo.dat")
-nm<-read.ices("data/herring/nm.dat")
-pf<-read.ices("data/herring/pf.dat")
-pm<-read.ices("data/herring/pm.dat")
-sw<-read.ices("data/herring/sw.dat")
-surveys<-read.ices("data/herring/survey.dat")
+cn<-read.ices("../../data/herring/cn.dat")
+cw<-read.ices("../../data/herring/cw.dat")
+dw<-read.ices("../../data/herring/dw.dat")
+lf<-read.ices("../../data/herring/lf.dat")
+lw<-read.ices("../../data/herring/lw.dat")
+mo<-read.ices("../../data/herring/mo.dat")
+nm<-read.ices("../../data/herring/nm.dat")
+pf<-read.ices("../../data/herring/pf.dat")
+pm<-read.ices("../../data/herring/pm.dat")
+sw<-read.ices("../../data/herring/sw.dat")
+surveys<-read.ices("../../data/herring/survey.dat")
 
 
 dat<-setup.sam.data(surveys=surveys,
@@ -25,30 +35,30 @@ dat<-setup.sam.data(surveys=surveys,
                     natural.mortality=nm,
                     land.frac=lf)
 
-conf = loadConf(dat,"scripts/Herring/confStandard.cfg")
+conf = loadConf(dat,"../../scripts/Herring/confStandard.cfg")
 par<-defpar(dat,conf)
 fitStandard<-sam.fit(dat,conf,par)
 
 #Run SAM with XSAM-options
-cn<-read.ices("data/herring/cn.dat")
-cw<-read.ices("data/herring/cw.dat")
-dw<-read.ices("data/herring/dw.dat")
-lf<-read.ices("data/herring/lf.dat")
-lw<-read.ices("data/herring/lw.dat")
-mo<-read.ices("data/herring/mo.dat")
-nm<-read.ices("data/herring/nm.dat")
-pf<-read.ices("data/herring/pf.dat")
-pm<-read.ices("data/herring/pm.dat")
-sw<-read.ices("data/herring/sw.dat")
-surveys<-read.ices("data/herring/survey.dat")
+cn<-read.ices("../../data/herring/cn.dat")
+cw<-read.ices("../../data/herring/cw.dat")
+dw<-read.ices("../../data/herring/dw.dat")
+lf<-read.ices("../../data/herring/lf.dat")
+lw<-read.ices("../../data/herring/lw.dat")
+mo<-read.ices("../../data/herring/mo.dat")
+nm<-read.ices("../../data/herring/nm.dat")
+pf<-read.ices("../../data/herring/pf.dat")
+pm<-read.ices("../../data/herring/pm.dat")
+sw<-read.ices("../../data/herring/sw.dat")
+surveys<-read.ices("../../data/herring/survey.dat")
 
-varC = as.matrix(read.table("data/herring/varC.txt", sep = " "))
+varC = as.matrix(read.table("../../data/herring/varC.txt", sep = " "))
 attributes(cn)$weight = 1/(varC)
-varS1 = as.matrix(read.table("data/herring/varS1.txt", sep = " "))
+varS1 = as.matrix(read.table("../../data/herring/varS1.txt", sep = " "))
 attributes(surveys[[1]])$weight = 1/(varS1)
-varS2 = as.matrix(read.table("data/herring/varS2.txt", sep = " "))
+varS2 = as.matrix(read.table("../../data/herring/varS2.txt", sep = " "))
 attributes(surveys[[2]])$weight = 1/(varS2)
-varS3 = as.matrix(read.table("data/herring/varS3.txt", sep = " "))
+varS3 = as.matrix(read.table("../../data/herring/varS3.txt", sep = " "))
 attributes(surveys[[3]])$weight = 1/(varS3)
 
 dat<-setup.sam.data(surveys=surveys,
@@ -64,7 +74,7 @@ dat<-setup.sam.data(surveys=surveys,
                     land.frac=lf)
 
 
-conf = loadConf(dat,"scripts/Herring/model.cfg")
+conf = loadConf(dat,"../../scripts/Herring/model.cfg")
 par<-defpar(dat,conf)
 par$logSdLogN = c(-0.35, -5)
 map = list(logSdLogN = as.factor(c(0,NA)))
@@ -72,7 +82,7 @@ fitCurrent<-sam.fit(dat,conf,par,map =map)
 
 
 #Fit SAM with settings given in modelModified.cfg
-conf = loadConf(dat,"scripts/Herring/modelModified.cfg")
+conf = loadConf(dat,"../../scripts/Herring/modelModified.cfg")
 par<-defpar(dat,conf)
 fitNew<-sam.fit(dat,conf,par)
 
@@ -107,4 +117,32 @@ set.seed(12345)
 forecast(fitCurrent, catchval = c(773.750,0)) #TODO: forecast fails with master-version when sd_N is fixed
 set.seed(12345)
 forecast(fitCurrent,catchval.exact = c(773.750,NA),fval = c(NA,0.14),nosim = 1000,ave.years = c(2016,2017,2018))
+
+
+
+
+
+
+#Some diagnostic
+CatchPlot(cn*cw)
+
+
+#THis needs some more work
+PlotCohort(cn,title = 'CAA')
+PlotCohort(surveys$SpawninggroundsalongtheNorwegiancoast,title = 'Spawning')
+PlotCohort(surveys$FeedingareasintheNorwegianSeainMay,title = 'May')
+
+
+#internal consistancy plot
+internalConsistancy(dat<-surveys$FeedingareasintheNorwegianSeainMay)
+internalConsistancy(dat<-surveys$SpawninggroundsalongtheNorwegiancoast)
+
+
+
+
+#read stox replicate
+getVariance(replicate = read.csv('../../data/Herring/Variance/gyt_replicate.txt'),survey = surveys[[1]],name='S1')
+getVariance(replicate = read.csv('../../data/Herring/Variance/bar_replicate.txt'),survey = surveys[[2]],name='S2')
+getVariance(replicate = read.csv('../../data/Herring/Variance/mai_replicate.txt'),survey = surveys[[3]],name='S3')
+
 
