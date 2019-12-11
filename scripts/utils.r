@@ -305,3 +305,53 @@ getVariance <- function(replicate,survey = surveys[[1]],name='S1'){
 
 
 
+getVarianceCn <- function(replicate= read.csv('../../data/Herring/Variance/caa_replicate.txt'),cn = cn){
+  
+  
+  
+  tmp<-cn
+  tmprep<-replicate
+  #The ECA point estimates are in the column 'mean'. Add a new column for the 'caa' point estimates used in the modelfitting
+  #norcaa
+  tmprep$caa<-NA
+  maxage<-max(as.numeric(attributes(tmp)$dimnames[[2]]))
+  minage<-min(as.numeric(attributes(tmp)$dimnames[[2]]))
+  
+  for(i in 1:nrow(tmprep)){
+    if(tmprep$alder[i]<maxage & tmprep$alder[i]>=minage){
+      tmprep$caa[i]<-tmp[paste(tmprep$aar[i]),paste(tmprep$alder[i])]
+    }
+  }
+  
+  
+  #------------------------------------------------------------------------------#
+  #Establish scaling factor; i.e. from Norwegian to total catches...
+  #------------------------------------------------------------------------------#
+  k<-lm(caa~-1+cn,data=tmprep)
+  k<-k$coef[1]
+  
+  #------------------------------------------------------------------------------#
+  #Establish alpha and beta in Taylor variance relationship
+  #------------------------------------------------------------------------------#
+  #Taylor model for variance
+  fcaa<-lm(log(v)~log(mean),data=tmprep)
+  
+  
+  
+  #Establish structure of data
+  sd_C<-cn*NA
+  years <- attributes(sd_C)$dimnames[[1]]
+  ages <- attributes(sd_C)$dimnames[[2]]
+  for(y in years){
+    for(a in ages){
+      mu<-cn[paste(y),paste(a)]
+      v<-taylorvar(alfa=exp(fcaa$coef[1]),beta=fcaa$coef[2],n=1,k=k,mu=mu)
+      logv<-log(v/mu^2+1)
+      sd_C[which(years==y),which(ages==a)]<-(logv)
+    }
+  }
+  
+  sd_C[is.na(sd_C)]<-1
+  write.table(sd_C,paste0('../../data/herring/variance/var_Catch_taylor.dat'),sep=' ')
+  
+}
