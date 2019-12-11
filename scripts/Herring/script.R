@@ -128,9 +128,9 @@ CatchPlot(cn*cw)
 
 
 #THis needs some more work
-PlotCohort(cn,title = 'CAA')
-PlotCohort(surveys$SpawninggroundsalongtheNorwegiancoast,title = 'Spawning')
-PlotCohort(surveys$FeedingareasintheNorwegianSeainMay,title = 'May')
+PlotCohort(tmp = cn,title = 'CAA')
+PlotCohort(tmp = surveys$SpawninggroundsalongtheNorwegiancoast,title = 'Spawning')
+PlotCohort(tmp=surveys$FeedingareasintheNorwegianSeainMay,title = 'May')
 
 
 #internal consistancy plot

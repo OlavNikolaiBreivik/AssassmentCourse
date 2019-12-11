@@ -49,7 +49,6 @@ arr2coh <- function(object){
 
 PlotCohort <- function(tmp,cohort_min=1990, ignore0 = TRUE,title=''){
   #plotting functin for the cohort and catch curves  
-  tmp <- cn
   tmp <-arr2coh(t(tmp))
   
   tmp <- as.data.frame(tmp)
