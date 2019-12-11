@@ -146,3 +146,95 @@ getVariance(replicate = read.csv('../../data/Herring/Variance/bar_replicate.txt'
 getVariance(replicate = read.csv('../../data/Herring/Variance/mai_replicate.txt'),survey = surveys[[3]],name='S3')
 
 
+
+
+
+
+replicate = read.csv('../../data/Herring/Variance/caa_replicate.txt')
+
+
+
+tmp<-cn
+tmprep<-replicate
+#The ECA point estimates are in the column 'mean'. Add a new column for the 'caa' point estimates used in the modelfitting
+#norcaa
+tmprep$caa<-NA
+maxage<-max(as.numeric(attributes(tmp)$dimnames[[2]]))
+minage<-min(as.numeric(attributes(tmp)$dimnames[[2]]))
+
+for(i in 1:nrow(tmprep)){
+  if(tmprep$alder[i]<maxage & tmprep$alder[i]>=minage){
+    tmprep$caa[i]<-tmp[paste(tmprep$aar[i]),paste(tmprep$alder[i])]
+    }
+}
+
+
+
+
+
+taylorvar<-function(alfa,beta,n,k,mu){
+  #Function that gives the variance of mu=k*mu' where mu' is Norwegian catches or indices from StoX and alpha and beta is estimated for mu' based on the Taylor variance function
+  k^(2-beta)*(alfa/n)*(mu)^beta
+}
+
+
+replicate<-replicate[!is.na(replicate$alder),]
+replicate$i <- NA
+#------------------------------------------------------------------------------#
+#This first function scales the variance to the correct scale
+for(i in 1:nrow(replicate)){
+  if(replicate$age[i]>=min(as.integer(attributes(survey)$dimnames[[2]])) & 
+     replicate$age[i]<=max(as.integer(attributes(survey)$dimnames[[2]]))){
+    k<-survey[paste(replicate$year[i]),paste(replicate$age[i])]
+    replicate$i[i]<-k
+  }
+}
+
+
+#---------------------------------------------------------------------#
+#Establish scaling factor; i.e. to match scaling deviations in the two sets
+#------------------------------------------------------------------------------#
+k<-lm(i~-1+mean,data=replicate)
+k<-k$coef[1]
+
+
+#------------------------------------------------------------------------------#
+#Establish alpha and beta in Taylor variance relationship
+#------------------------------------------------------------------------------#
+#Taylor model for variance
+fi<-lm(log(v)~log(mean),data=replicate[replicate$mean>0,])
+
+
+
+
+#Establish structure of data
+sd_I<-survey*NA
+years <- attributes(sd_I)$dimnames[[1]]
+ages <- attributes(sd_I)$dimnames[[2]]
+for(y in years){
+  for(a in ages){
+    mu<-survey[paste(y),paste(a)]
+    v<-taylorvar(alfa=exp(fi$coef[1]),beta=fi$coef[2],n=1,k=k,mu=mu)
+    logv<-log(v/mu^2+1)
+    sd_I[which(years==y),which(ages==a)]<-(logv)
+  }
+}
+
+sd_I[is.na(sd_I)]<-1
+write.table(sd_I,paste0('../../data/herring/variance/var',name,'_taylor.dat'),sep=' ')
+
+
+#An example of replacing with empirical if available
+sd_I<-survey*NA
+years <- attributes(sd_I)$dimnames[[1]]
+ages <- attributes(sd_I)$dimnames[[2]]
+for(y in years){
+  for(a in ages){
+    tmpl<-replicate[replicate$year==y & replicate$age==a,]
+    if(nrow(tmpl)>0){
+      sd_I[which(years==y),which(ages==a)]<-(log(tmpl$RSE^2+1))
+    }
+  }
+}
+
+sd_I[is.na(sd_I)]<-1
