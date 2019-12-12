@@ -276,7 +276,7 @@ The average catch in years 2020 to 2022 is 778270 tonns of cod, which is used as
 
 ## Additional assignment: Include a link between mean and variance inside SAM
 
-The external variance estimates used in this case study are smoothed versions of the external variances estimates. The smooting is perfomed with the following procedure: Let $\mu_{a,y}$ be the observation for age $a$ at year $y$ on natural scale, and let $v_{a,y}$ be the correspondning variance. We assume that
+The external variance estimates used in the Norwegian Spring Spawning hering assessment are smoothed versions of the external variances estimates. The smooting is perfomed with the following procedure: Let $\mu_{a,y}$ be the observation for age $a$ at year $y$ on natural scale, and let $v_{a,y}$ be the correspondning variance. We assume that
 \begin{align}
  v_{a,y} = \alpha \mu_{a,y}^\beta, 
 \end{align}
@@ -288,16 +288,19 @@ The relation between the mean and variance above can be included internally in S
 devtools::install_github("fishfollower/SAM/stockassessment",ref = "FprocVarMeanLink")
 ```
 
-Set the configurations to use internal weighting with the `meanWeigthObsV` option and run SAM:
+Set the configurations to use internal weighting with the `meanWeigthObsV` option and run SAM
 
-```r
-  conf$meanVarObsLink = conf$keyVarObs
-  par<-defpar(dat,conf)
-  fit<-sam.fit(dat,conf,par)
-```
 <em>Note: Internally in SAM, $\mu_{a,y}$ is replaced with the expected observation for age $a$ in year $y$. A documentation for the procedure is given as a vignette [here](https://github.com/fishfollower/SAM/tree/vignettes/stockassessment/vignettes).</em> Note also that only the link between the mean and variance is used with this option, and not the external variance estimates. 
 
-Compare the assessment with usage of the external variances and with use of the internal mean-variance-link.
+Comare the assessment with usage of the external variances and with use of the internal mean-variance-link.
 
 ***
 
+## Additional assignment: Include what is discussed in [Aldrin et al. (2019)](https://www.sciencedirect.com/science/article/abs/pii/S0165783618302224?via%3Dihub)
+
+
+In [Aldrin et al. (2019)](https://www.sciencedirect.com/science/article/abs/pii/S0165783618302224?via%3Dihub) it is discussed to modify the observation predictions to be expectation correct. This can be performed by shifiting the predictions with $e^{0.5\sigma^2}$, where $\sigma^2$ is the corresponding variance of the log-observation. Clone the [SAM](https://github.com/fishfollower/SAM) repository and make a new branch with expectation correct predictions. Investigate what effect this has on the assessment.
+
+In [Aldrin et al. (2019)](https://www.sciencedirect.com/science/article/abs/pii/S0165783618302224?via%3Dihub) it also discussed to modify the observation equations to include the process error. Clone the [SAM](https://github.com/fishfollower/SAM) repository and make a new branch where a trasformed version of the process error is inculded in the observation equeations. Investigate what effect this has on the assessment.
+
+***

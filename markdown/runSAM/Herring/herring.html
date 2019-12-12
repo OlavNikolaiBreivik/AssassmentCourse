@@ -594,27 +594,6 @@ We predict the SSB to be approximately 3.783 million tonnes in 1st january 2020.
 </ol>
 <hr />
 </div>
-<div id="additional-assignment-include-a-link-between-mean-and-variance-inside-sam" class="section level2">
-<h2>Additional assignment: Include a link between mean and variance inside SAM</h2>
-<p>The external variance estimates used in the Norwegian Spring Spawning hering assessment are smoothed versions of the external variances estimates. The smooting is perfomed with the following procedure: Let <span class="math inline">\(\mu_{a,y}\)</span> be the observation for age <span class="math inline">\(a\)</span> at year <span class="math inline">\(y\)</span> on natural scale, and let <span class="math inline">\(v_{a,y}\)</span> be the correspondning variance. We assume that <span class="math display">\[\begin{align}
- v_{a,y} = \alpha \mu_{a,y}^\beta, 
-\end{align}\]</span> and estimate <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> outside of SAM. The smoothed external variances are furhter used in SAM to weight the likelihood contributions from each observation.</p>
-<p>The relation between the mean and variance above can be included internally in SAM. To estimate weights internally in SAM we need to install a development version of SAM. The development version can be installed by:</p>
-<pre class="r"><code>devtools::install_github(&quot;fishfollower/SAM/stockassessment&quot;,ref = &quot;FprocVarMeanLink&quot;)</code></pre>
-<p>Set the configurations to use internal weighting with the <code>meanWeigthObsV</code> option and run SAM:</p>
-<pre class="r"><code>  conf$meanVarObsLink = conf$keyVarObs
-  par&lt;-defpar(dat,conf)
-  fit&lt;-sam.fit(dat,conf,par)</code></pre>
-<p><em>Note: Internally in SAM, <span class="math inline">\(\mu_{a,y}\)</span> is replaced with the expected observation for age <span class="math inline">\(a\)</span> in year <span class="math inline">\(y\)</span>. A documentation for the procedure is given as a vignette <a href="https://github.com/fishfollower/SAM/tree/vignettes/stockassessment/vignettes">here</a>.</em> Note also that only the link between the mean and variance is used with this option, and not the external variance estimates.</p>
-<p>Comare the assessment with usage of the external variances and with use of the internal mean-variance-link.</p>
-<hr />
-</div>
-<div id="additional-assignment-include-what-is-discussed-in-aldrin-et-al.-2019" class="section level2">
-<h2>Additional assignment: Include what is discussed in <a href="https://www.sciencedirect.com/science/article/abs/pii/S0165783618302224?via%3Dihub">Aldrin et al. (2019)</a></h2>
-<p>In <a href="https://www.sciencedirect.com/science/article/abs/pii/S0165783618302224?via%3Dihub">Aldrin et al. (2019)</a> it is discussed to modify the observation predictions to be expectation correct. This can be performed by shifiting the predictions with <span class="math inline">\(e^{0.5\sigma^2}\)</span>, where <span class="math inline">\(\sigma^2\)</span> is the corresponding variance of the log-observation. Clone the <a href="https://github.com/fishfollower/SAM">SAM</a> repository and make a new branch with expectation correct predictions. Investigate what effect this has on the assessment.</p>
-<p>In <a href="https://www.sciencedirect.com/science/article/abs/pii/S0165783618302224?via%3Dihub">Aldrin et al. (2019)</a> it also discussed to modify the observation equations to include the process error. Clone the <a href="https://github.com/fishfollower/SAM">SAM</a> repository and make a new branch where a trasformed version of the process error is inculded in the observation equeations. Investigate what effect this has on the assessment.</p>
-<hr />
-</div>
 
 
 
