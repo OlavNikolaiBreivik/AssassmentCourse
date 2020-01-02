@@ -14,15 +14,15 @@ sw<-read.ices("data/NEAcod/sw.dat")
 surveys<-read.ices("data/NEAcod/survey.dat")
 
 dat<-setup.sam.data(surveys=surveys,
-                    residual.fleet=cn, 
-                    prop.mature=mo, 
-                    stock.mean.weight=sw, 
-                    catch.mean.weight=cw, 
-                    dis.mean.weight=dw, 
+                    residual.fleet=cn,
+                    prop.mature=mo,
+                    stock.mean.weight=sw,
+                    catch.mean.weight=cw,
+                    dis.mean.weight=dw,
                     land.mean.weight=lw,
-                    prop.f=pf, 
-                    prop.m=pm, 
-                    natural.mortality=nm, 
+                    prop.f=pf,
+                    prop.m=pm,
+                    natural.mortality=nm,
                     land.frac=lf)
 conf = defcon(dat)
 par<-defpar(dat,conf)
@@ -35,15 +35,15 @@ attributes(cn)$weight = 1/varC
 varS1 = as.matrix(read.table("data/NEAcod/variances/varFLT15Cod.txt", sep = " "))
 attributes(surveys[[1]])$weight = 1/varS1
 dat<-setup.sam.data(surveys=surveys,
-                    residual.fleet=cn, 
-                    prop.mature=mo, 
-                    stock.mean.weight=sw, 
-                    catch.mean.weight=cw, 
-                    dis.mean.weight=dw, 
+                    residual.fleet=cn,
+                    prop.mature=mo,
+                    stock.mean.weight=sw,
+                    catch.mean.weight=cw,
+                    dis.mean.weight=dw,
                     land.mean.weight=lw,
-                    prop.f=pf, 
-                    prop.m=pm, 
-                    natural.mortality=nm, 
+                    prop.f=pf,
+                    prop.m=pm,
+                    natural.mortality=nm,
                     land.frac=lf)
 conf = defcon(dat)
 par<-defpar(dat,conf)
@@ -52,8 +52,8 @@ fitWithVar<-sam.fit(dat,conf,par)
 #Validate assessment
 AIC(fitStandard, fitWithVar)
 
-resStandard = residuals(fitStandard) 
-resWithVar = residuals(fitWithVar)  
+resStandard = residuals(fitStandard)
+resWithVar = residuals(fitWithVar)
 retroStandard = retro(fitStandard,year = 7)
 retroWithVar = retro(fitWithVar,year = 7)
 
@@ -91,15 +91,15 @@ surveys<-read.ices("data/NEAcod/survey.dat")
 
 
 dat<-setup.sam.data(surveys=surveys,
-                    residual.fleet=cn, 
-                    prop.mature=mo, 
-                    stock.mean.weight=sw, 
-                    catch.mean.weight=cw, 
-                    dis.mean.weight=dw, 
+                    residual.fleet=cn,
+                    prop.mature=mo,
+                    stock.mean.weight=sw,
+                    catch.mean.weight=cw,
+                    dis.mean.weight=dw,
                     land.mean.weight=lw,
-                    prop.f=pf, 
-                    prop.m=pm, 
-                    natural.mortality=nm, 
+                    prop.f=pf,
+                    prop.m=pm,
+                    natural.mortality=nm,
                     land.frac=lf)
 conf<-loadConf(dat,"scripts/runSAM/NEAcod/model.cfg", patch=TRUE)
 par<-defpar(dat,conf)
@@ -128,57 +128,18 @@ varS1 = as.matrix(read.table("data/NEAcod/variances/varFLT15Cod.txt", sep = " ")
 attributes(surveys[[1]])$weight = 1/varS1
 
 dat<-setup.sam.data(surveys=surveys,
-                    residual.fleet=cn, 
-                    prop.mature=mo, 
-                    stock.mean.weight=sw, 
-                    catch.mean.weight=cw, 
-                    dis.mean.weight=dw, 
+                    residual.fleet=cn,
+                    prop.mature=mo,
+                    stock.mean.weight=sw,
+                    catch.mean.weight=cw,
+                    dis.mean.weight=dw,
                     land.mean.weight=lw,
-                    prop.f=pf, 
-                    prop.m=pm, 
-                    natural.mortality=nm, 
+                    prop.f=pf,
+                    prop.m=pm,
+                    natural.mortality=nm,
                     land.frac=lf)
-conf<-loadConf(dat,"scripts/runSAM/NEAcod/model.cfg", patch=TRUE) #Task: suggest configurations
+conf<-loadConf(dat,"scripts/runSAM/NEAcod/modelNew.cfg", patch=TRUE) #Task: suggest configurations
 par<-defpar(dat,conf)
 fitNew<-sam.fit(dat,conf,par)
 AIC(fitStandard, fitWithVar,fitCurrent,fitNew)
-
-
-
-
-
-#Fit SAM with meanVarLink
-devtools::install_github("fishfollower/SAM/stockassessment",ref = "FprocVarMeanLink")
-library(stockassessment)
-cn<-read.ices("data/NEAcod/cn.dat")
-cw<-read.ices("data/NEAcod/cw.dat")
-dw<-read.ices("data/NEAcod/dw.dat")
-lf<-read.ices("data/NEAcod/lf.dat")
-lw<-read.ices("data/NEAcod/lw.dat")
-mo<-read.ices("data/NEAcod/mo.dat")
-nm<-read.ices("data/NEAcod/nm.dat")
-pf<-read.ices("data/NEAcod/pf.dat")
-pm<-read.ices("data/NEAcod/pm.dat")
-sw<-read.ices("data/NEAcod/sw.dat")
-surveys<-read.ices("data/NEAcod/survey.dat")
-
-dat<-setup.sam.data(surveys=surveys,
-                    residual.fleet=cn, 
-                    prop.mature=mo, 
-                    stock.mean.weight=sw, 
-                    catch.mean.weight=cw, 
-                    dis.mean.weight=dw, 
-                    land.mean.weight=lw,
-                    prop.f=pf, 
-                    prop.m=pm, 
-                    natural.mortality=nm, 
-                    land.frac=lf)
-conf<-loadConf(dat,"scripts/runSAM/NEAcod/modelMeanVar.cfg", patch=TRUE) #Task: suggest configurations
-par<-defpar(dat,conf)
-fitMV<-sam.fit(dat,conf,par)
-partable(fitMV)
-AIC(fitStandard, fitWithVar,fitCurrent,fitNew,fitMV)
-
-
-
 
