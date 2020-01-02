@@ -573,10 +573,13 @@ In 2019 it is estimated to be caught 773 750 tons of herring.
 We predict the SSB to be approximately 3.783 million tonnes in 1st january 2020. By using the target level of exploration formula above, we want to target the fishing mortalty to <span class="math inline">\(F_{tr} = 0.14\)</span> in 2020.
 </details>
 <details>
-<p><summary>Forecast catches in 2020 corresponding to <span class="math inline">\(F_{tr}\)</span></summary></p>
+<p><summary>Forecast catches in 2020 with <span class="math inline">\(\bar F_w = F_{tr}\)</span></summary></p>
 <pre class="r"><code>  set.seed(12345)
-  forecast(fit,catchval.exact = c(773.750,NA), fval = c(NA,0.14)) </code></pre>
-<p>Estimated catch in 2020 is 503 000 tonnes, which is the advised TAC.</p>
+  forecast(fitCurrent,catchval.exact = c(773.750,NA,NA),fBarW = c(NA,0.14,0.14),nosim = 1000,ave.years = c(2016,2017,2018),rec.years = c(2016,2017,2018)) </code></pre>
+<p>Estimated catch in 2020 is 531 000 tonnes, which is the advised TAC.</p>
+<p><em>Note: Currently we need to use a development version of SAM to forecast with weighted F which is used in the TAC calculation procedure for herring. The development version can be installed by typing</p>
+<pre class="r"><code>  devtools::install_github(&quot;fishfollower/SAM/stockassessment&quot;,ref = &quot;forecastWeightedF&quot;)</code></pre>
+<p></em></p>
 </details>
 <hr />
 </div>
