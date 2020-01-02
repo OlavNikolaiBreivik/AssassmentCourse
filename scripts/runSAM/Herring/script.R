@@ -88,14 +88,9 @@ mtext("Leaveout standard settings",  line = 2,at = 2003, cex = 2.5)
 
 
 
-#Forecast #Note need developmentversion of SAM
+#Forecast #Note needs developmentversion of SAM
 set.seed(12345)
 forecast(fitStandard,catchval.exact = c(773.750,NA,NA),fBarW = c(NA,0.14,0.14),nosim = 1000,ave.years = c(2016,2017,2018),rec.years = c(2016,2017,2018)) 
-set.seed(12345)
-forecast(fitCurrent,catchval.exact = c(773.750,NA,NA),fBarW = c(NA,0.14,0.14),nosim = 1000,ave.years = c(2016,2017,2018),rec.years = c(2016,2017,2018) )
-plot(t)
-
-
 
 
 
@@ -134,19 +129,9 @@ dat<-setup.sam.data(surveys=surveys,
                     land.frac=lf)
 
 
-conf = loadConf(dat,"scripts/Herring/modelModified.cfg") #Task: each make their own suggestion
+conf = loadConf(dat,"scripts/runSAM/Herring/modelNew.cfg") #Task: each make their own suggestion
 par<-defpar(dat,conf)
 fitNew<-sam.fit(dat,conf,par)
 
 AIC(fitStandard,fitCurrent,fitNew)
-corplot(fitNew)
-
-resNew = residuals(fitNew) #OSA residuals
-plot(resNew)
-mtext("OSA residuals standard settings", line = 1,at = 0, cex = 2.5)
-
-retroNew = retro(fitNew,year =7) #Retro
-plot(retroNew)
-mtext("Retro standard settings", line = 2,at = 2003, cex = 2.5)
-
-
+corplot(fitNew)#Plot the internally estimated correlation structure  
