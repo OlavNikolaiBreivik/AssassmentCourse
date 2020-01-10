@@ -22,6 +22,16 @@ surveys<-read.ices("../../../data/herring/survey.dat")
 
 
 
+
+#read stox replicate
+getVariance(replicate = read.csv('../../../data/Herring/Variance/gyt_replicate.txt'),survey = surveys[[1]],name='S1')
+getVariance(replicate = read.csv('../../../data/Herring/Variance/bar_replicate.txt'),survey = surveys[[2]],name='S2')
+getVariance(replicate = read.csv('../../../data/Herring/Variance/mai_replicate.txt'),survey = surveys[[3]],name='S3')
+
+
+#Do the same for catch
+getVarianceCn(replicate = read.csv('../../../data/Herring/Variance/caa_replicate.txt'),cn)
+
 #Some diagnostic
 CatchPlot(cn*cw)
 
@@ -38,13 +48,18 @@ internalConsistancy(dat<-surveys$SpawninggroundsalongtheNorwegiancoast)
 
 
 
-
-#read stox replicate
-getVariance(replicate = read.csv('../../../data/Herring/Variance/gyt_replicate.txt'),survey = surveys[[1]],name='S1')
-getVariance(replicate = read.csv('../../../data/Herring/Variance/bar_replicate.txt'),survey = surveys[[2]],name='S2')
-getVariance(replicate = read.csv('../../../data/Herring/Variance/mai_replicate.txt'),survey = surveys[[3]],name='S3')
+replicate = read.csv('../../../data/Herring/Variance/gyt_replicate.txt')
+replicate<-replicate[replicate$year>=2015,]
+ggplot(data=replicate,aes(x=age,y=RSE,group=year,colour=year))+geom_line()+ggsave('Gyt2015.png')
 
 
-#Do the same for catch
-getVarianceCn(replicate = read.csv('../../../data/Herring/Variance/caa_replicate.txt'),cn)
+replicate = read.csv('../../../data/Herring/Variance/gyt_replicate.txt')
+replicate<-replicate[replicate$year<2015,]
+year_i <- unique(replicate$year)
+ggplot(data=replicate,aes(x=age,y=RSE,group=year,colour=year))+geom_line()+ggsave('Gyt.png')
+
+
+
+replicate = read.csv('../../../data/Herring/Variance/mai_replicate.txt')
+ggplot(data=replicate,aes(x=age,y=RSE,group=year,colour=year))+geom_line()+ggsave('Mai.png')
 

@@ -304,8 +304,13 @@ getVariance <- function(replicate,survey = surveys[[1]],name='S1'){
 
 
 
-getVarianceCn <- function(replicate= read.csv('../../data/Herring/Variance/caa_replicate.txt'),cn = cn){
+getVarianceCn <- function(replicate= read.csv('../../../data/Herring/Variance/caa_replicate.txt'),cn = cn){
   
+  
+  taylorvar<-function(alfa,beta,n,k,mu){
+    #Function that gives the variance of mu=k*mu' where mu' is Norwegian catches or indices from StoX and alpha and beta is estimated for mu' based on the Taylor variance function
+    k^(2-beta)*(alfa/n)*(mu)^beta
+  }
   
   
   tmp<-cn
