@@ -94,7 +94,7 @@ In this case study we illustrates how to modify these parts to utilize different
 
 ***
 
-### Fit SAM model with XSAM options
+### Fit SAM model with external variance estimates
 In this example we include external variance estimates and default SAM configurations. 
 <details>  
   <summary>Read data</summary>
@@ -146,7 +146,6 @@ In this example we include external variance estimates and default SAM configura
 ```r
   conf = defcon(dat)
 ```
-  <em>Note: We use default settings, the only XSAM setting here used are the inclution of the external variance estimates.</em>
 </details>
 
 <details>  
@@ -203,7 +202,7 @@ The assessment is based on a given set of configuration settings. We will now va
   plot(retroStandard)
   plot(retroWithVar)
 ```
-  <em>Note: More allarming retrospecitve patterns when including the variances.</em>
+  <em>Note: More allarming retrospecitve patterns when including the external variance estimates.</em>
 
     ![](retroStandard.png)
     ![](retroWithVar.png)
@@ -250,33 +249,37 @@ The estimated catch in 2019 is 697 kt, and we can forcast the SSB in 2020 with u
   set.seed(12345)
   forecast(fit,catchval = c(697000,0,0,0))
 ```
-This gives an estimated SSB of 1386647. 
+This gives an estimated SSB of 1157283. 
 
 </details>
 
 
 <details>  
   <summary>Calculate $\text{F}_{tr}$</summary>
-  Since the estimated SSB in year 2020 is 1386647, we have that $F_{tr} = 1.5\text{F}_{msy} = 0.6$
+  Since the estimated SSB in year 2020 is 1157283, we have that $F_{tr} = \text{F}_{msy}(1+0.5*0.5158) = 0.503$
 </details>
 
 <details>  
   <summary>Forecast catches in year 2020 to 2022 with $\text{F} = \text{F}_{tr}$</summary>
- We can then forecast the catches with $\text{F} = \text{F}_{tr} =  0.6$ in years 2020,2021 and 2022 with the `forecast` function in SAM:
+ We can then forecast the catches with $\text{F} = \text{F}_{tr} =  0.5$ in years 2020,2021 and 2022 with the `forecast` function in SAM:
 
 ```r
   set.seed(12345)
-  forecast(fit,catchval = c(697000,NA,NA,NA), fval = c(NA,0.6,0.6,0.6))
+  forecast(fit,catchval = c(697000,NA,NA,NA), fval = c(NA,0.503,0.503,0.503))
 ```
 
-The average catch in years 2020 to 2022 is 778270 tonns of cod, which is used as the quota advice.
+The average catch in years 2020 to 2022 is 622422 tonns of cod, which is the advised TAC.
+
+  <em>Note: We have not included canibalism in the natural mortality, and use default settings for recruits and stock weights in the prediction routine. Thereby is our estimate not exactly as given in the [AFWG2019](http://www.ices.dk/sites/pub/Publication%20Reports/Expert%20Group%20Report/Fisheries%20Resources%20Steering%20Group/2019/WGWIDE/01%20WGWIDE%20Report%202019.pdf) report.</em>
+
+
 </details>
 
 ***
 
 ## Additional assignment: Include a link between mean and variance inside SAM
 
-The external variance estimates used in the Norwegian Spring Spawning hering assessment are smoothed versions of the external variances estimates. The smooting is perfomed with the following procedure: Let $\mu_{a,y}$ be the observation for age $a$ at year $y$ on natural scale, and let $v_{a,y}$ be the correspondning variance. We assume that
+The external variance estimates used in this case study are smoothed versions of the external variances estimates. The smoothing is perfomed with the following procedure: Let $\mu_{a,y}$ be the observation for age $a$ at year $y$ on natural scale, and let $v_{a,y}$ be the correspondning variance. We assume that
 \begin{align}
  v_{a,y} = \alpha \mu_{a,y}^\beta, 
 \end{align}

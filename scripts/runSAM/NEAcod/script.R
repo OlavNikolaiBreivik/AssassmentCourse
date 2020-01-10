@@ -68,11 +68,6 @@ plot(resWithVar)
 mtext("OSA residuals external variances", line = 2,at = 0, cex = 2.5)
 
 
-#Find advised TAC
-F_sq = 697000
-F_tr = 0.6
-forecast(fit,catchval = c(F_sq,NA,NA,NA),fval = c(NA,F_tr,F_tr,F_tr))
-
 
 
 
@@ -105,6 +100,14 @@ conf<-loadConf(dat,"scripts/runSAM/NEAcod/model.cfg", patch=TRUE)
 par<-defpar(dat,conf)
 fitCurrent<-sam.fit(dat,conf,par)
 AIC(fitStandard, fitWithVar,fitCurrent)
+
+
+#Find advised TAC
+F_sq = 697412
+F_tr = 0.503
+set.seed(12345)
+forecast(fitCurrent,catchval = c(F_sq,NA,NA,NA),fval = c(NA,F_tr,F_tr,F_tr))
+
 
 
 
