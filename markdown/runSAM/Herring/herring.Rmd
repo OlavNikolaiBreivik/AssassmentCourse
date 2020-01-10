@@ -183,7 +183,7 @@ In this case study we illustrates how to modify these parts to use settings from
 
 ***
 ## Evaluate assessment
-The assessment is based on a given set of configuration settings. We will now validate these settings and the model used. In this section we will look at the following three key features:
+The assessment is based on a given set of configurations. We will now validate these settings and the model used. In this section we will look at the following three key features:
 
 1. AIC
 2. OSA residuals
@@ -234,7 +234,7 @@ The assessment is based on a given set of configuration settings. We will now va
 
 <br> 
 
-In the Norwegian Spring Spawning herring assessment it is used three survey indices in addition to the commercial catch data. We can investigate the effect of removing one or more of these surveys from the assessment model by using the `leaveout` function in SAM.
+Three surveys are used in the Norwegian Spring Spawning herring assessment, in addition to the commercial catch data. We can investigate the effect of removing one or more of these surveys from the assessment model by using the `leaveout` function in SAM.
 
 <details>  
   <summary>Leaveout</summary>
@@ -268,26 +268,43 @@ Propose several configuration settings, and argue which proposal is the best.
 ***
 
 ## TAC for 2020
-The target level of exploration is calculated with the following formula:
+
+The recipe for calculating the TAC in year 2020 is given by:
+
+ 1. Estimate SSB January 1st 2020 based on catch equal the quota in 2019.
+ 2. Based on the predicted SSB, calculate the target level of exploration ($F_{tr}$)
+ 3. Predict catch in 2020 given $\bar{ F}_w = F_{tr}$
+
+In the above recipe, $F_{tr}$ is defined as: 
+
 \begin{align}
   F_{tr}=
   \begin{cases}
   0.05 ,& \text{if } \text{SSB} \leq B_{lim}  \\
   0.14- 0.09\frac{B_{pa} - \text{SSB}}{B_{pa}-\text{B}_{lim}} ,& \text{if } \text{B}_{lim} < \text{SSB} \leq B_{pa}  \\
-  0.14 ,& \text{if } \text{B}_{pa} < \text{SSB}
+  0.14 ,& \text{if } \text{B}_{pa} < \text{SSB,}
   \end{cases}
 \end{align}
-where $\text{B}_{lim} = 2.5$ million tonnes. and $\text{B}_{pa} = 3.184$ million tonnes.
+where $\text{B}_{lim} = 2.5$ million tonnes, and $\text{B}_{pa} = 3.184$ million tonnes. Further is $\bar{F}_w$ defined as 
+\begin{align*}
+\bar{F}_w = \sum_{a = 5}^{10} F_a\frac{N_a}{N},
+\end{align*}
+where $N = \sum_{a = 5}^{10} N_a$.
 
 
-In 2019 it is estimated to be caught 773 750 tons of herring. 
+
 <details>  
-  <summary>Predict SSB January 1st. 2020</summary>
+  <summary>Predict SSB January 1st. 2020 given 773 750 tons catch of herring in 2019</summary>
 ```r
   set.seed(12345)
   forecast(fitCurrent,catchval.exact = c(773.750,0))
 ```
-We predict the SSB to be approximately 3.783 million tonnes in 1st january 2020. By using the target level of exploration formula above, we want to target the fishing mortalty to $F_{tr} =  0.14$ in 2020. 
+We predict the SSB to be approximately 3.783 million tonnes in 1st january 2020.
+</details>
+
+<details>  
+  <summary>Calculate $F_{tr}$ given SSB equal 3.783 million tonnes</summary>
+By using the target level of exploration formula above, we want to target the fishing mortalty to $F_{tr} =  0.14$ in 2020.
 </details>
 
 
@@ -295,11 +312,11 @@ We predict the SSB to be approximately 3.783 million tonnes in 1st january 2020.
   <summary>Forecast catches in 2020 with $\bar F_w = F_{tr}$</summary>
 ```r
   set.seed(12345)
-  forecast(fitCurrent,catchval.exact = c(773.750,NA,NA),fBarW = c(NA,0.14,0.14),nosim = 1000) 
+forecast(fitCurrent,catchval.exact = c(773.750,NA,NA),fBarW = c(NA,0.14,0.14),nosim = 1000,ave.years = c(2016,2017,2018)) 
 ```
-Estimated catch in 2020 is 533 000 tonnes, which is the advised TAC. 
+Estimated catch in 2020 is 530 000 tonnes, which is the advised TAC. 
 
-<em>Note: Currently we need to use a development version of SAM to forecast with weighted F which is used in the TAC calculation procedure for herring. The development version can be installed by typing
+<em>Note: Currently we need to use a development version of SAM to forecast with conditioned weighted F. The development version can be installed by typing
 ```r
   devtools::install_github("fishfollower/SAM/stockassessment",ref = "forecastWeightedF")
 ```

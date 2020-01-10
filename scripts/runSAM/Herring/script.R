@@ -1,3 +1,4 @@
+devtools::install_github("fishfollower/SAM/stockassessment",ref = "initReset")
 library(stockassessment)
 
 #Run standard SAM
@@ -83,7 +84,7 @@ plot(leaveoutStandard)
 mtext("Leaveout standard settings",  line = 2,at = 2003, cex = 2.5)
 leaveoutCurrent= leaveout(fitCurrent)
 plot(leaveoutCurrent)
-mtext("Leaveout standard settings",  line = 2,at = 2003, cex = 2.5)
+mtext("Leaveout current settings",  line = 2,at = 2003, cex = 2.5)
 
 
 
@@ -91,7 +92,7 @@ mtext("Leaveout standard settings",  line = 2,at = 2003, cex = 2.5)
 #Forecast #Note needs developmentversion of SAM
 #devtools::install_github("fishfollower/SAM/stockassessment",ref = "forecastWeightedF")
 set.seed(12345)
-forecast(fitCurrent,catchval.exact = c(773.750,NA,NA),fBarW = c(NA,0.14,0.14),nosim = 1000,ave.years = c(2016,2017,2018),rec.years = c(2016,2017,2018)) 
+forecast(fitCurrent,catchval.exact = c(773.750,NA,NA),fBarW = c(NA,0.14,0.14),nosim = 1000,ave.years = c(2016,2017,2018)) 
 
 
 
