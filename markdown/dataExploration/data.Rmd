@@ -11,6 +11,12 @@ source('script/utils.r')
 ```
 
 ### Looking at input data
+Usually the input data may include: 
+ - Catch at age data
+ - Abundance at age data from acoustic
+ - Abundance at age data from swept-area
+ - Abundance at age fra tagging data
+
 
 
 ## **Reading the data** 
