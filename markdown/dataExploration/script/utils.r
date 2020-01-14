@@ -282,7 +282,7 @@ getVariance <- function(replicate,survey = surveys[[1]],name='S1'){
   }
   
   sd_I[is.na(sd_I)]<-1
-  write.table(sd_I,paste0('../../data/herring/variance/var',name,'_taylor.dat'),sep=' ')
+  write.table(sd_I,paste0('Herring/Variance/var',name,'_taylor.dat'),sep=' ')
   
   
   #An example of replacing with empirical if available
@@ -299,12 +299,12 @@ getVariance <- function(replicate,survey = surveys[[1]],name='S1'){
   }
   
   sd_I[is.na(sd_I)]<-1
-  write.table(sd_I,paste0('../../data/herring/variance/var',name,'_emp.dat'),sep=' ')
+  write.table(sd_I,paste0('Herring/Variance/var',name,'_emp.dat'),sep=' ')
 }
 
 
 
-getVarianceCn <- function(replicate= read.csv('../../../data/Herring/Variance/caa_replicate.txt'),cn = cn){
+getVarianceCn <- function(replicate= read.csv('Herring/Variance/caa_replicate.txt'),cn = cn){
   
   
   taylorvar<-function(alfa,beta,n,k,mu){
@@ -356,6 +356,6 @@ getVarianceCn <- function(replicate= read.csv('../../../data/Herring/Variance/ca
   }
   
   sd_C[is.na(sd_C)]<-1
-  write.table(sd_C,paste0('../../data/herring/variance/var_Catch_taylor.dat'),sep=' ')
+  write.table(sd_C,paste0('Herring/Variance/var_Catch_taylor.dat'),sep=' ')
   
 }

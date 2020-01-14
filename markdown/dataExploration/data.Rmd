@@ -8,14 +8,34 @@ output:
 library(stockassessment)
 library(ggplot2)
 source('script/utils.r')
+# setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 ```
 
-### Looking at input data
+## Input Data
 Usually the input data may include: 
- - Catch at age data
- - Abundance at age data from acoustic
- - Abundance at age data from swept-area
- - Abundance at age fra tagging data
+* Catch at age data 
+* Abundance at age data from acoustic
+* Abundance at age data from swept-area
+* Abundance at age fra tagging data
+
+
+For herring we have the following data: 
+ - Catch at age
+ - Acoustic survey in may/june
+ - Acoustic survey in february
+ - Acoustic survey in barent sea (nursery area)
+
+
+
+
+## **The StoX software** 
+The StoX software is commonly used for develope index for several marine species. 
+
+In the official releace of Rstox (https://github.com/Sea2Data/Rstox), the variance are computed through a bootstrap rutine. 
+
+In an unofficial releace, the ECA model is implemented which computes the catch at age and the variance.
+
+![Illustration of the Stox Software](Stox.png)
 
 
 
@@ -39,8 +59,17 @@ pf<-read.ices("Herring/pf.dat")
 pm<-read.ices("Herring/pm.dat")
 sw<-read.ices("Herring/sw.dat")
 surveys<-read.ices("Herring/survey.dat")
+
+#read stox replicate
+getVariance(replicate = read.csv('Herring/Variance/gyt_replicate.txt'),survey = surveys[[1]],name='S1')
+getVariance(replicate = read.csv('Herring/Variance/bar_replicate.txt'),survey = surveys[[2]],name='S2')
+getVariance(replicate = read.csv('Herring/Variance/mai_replicate.txt'),survey = surveys[[3]],name='S3')
+getVarianceCn(replicate = read.csv('Herring/Variance/caa_replicate.txt'),cn)
+
 ```
 </details>
+
+
 
 ## **Look at the catch weight** <details>  
   <summary>Plotting</summary>
@@ -57,8 +86,9 @@ lines(2:12,cw[i,],col='red')
 
 
 
-![Looking at cw](cw.png)
+![Looking at cw where red line is the last entry](cw.png)
 
+Here you need to check if the data looks ok. 
 
 
 
@@ -92,6 +122,8 @@ lines(2:12,mo[i,],col='red')
 ```
 </details>
 ![Looking at mo](mo.png)
+
+
 
 
 ## **Look at the cath ** 
@@ -142,3 +174,112 @@ internalConsistancy(dat<-surveys$SpawninggroundsalongtheNorwegiancoast)
 
 
 ![Looking at spawning survey internal consistancy](internal_spawn.png)
+
+
+
+
+## **Taylor approximation** 
+The reason for doing a taylor approximation is to smooth the variance and to be able to add variance to data that does not have this
+
+$$v=k^{(2-\beta)}*(\alpha/n)*(\mu)^\beta$$
+where v is the smoothed variance, $\mu$ is the either the catch or the index, $\alpha$ and $\beta$ is estimated using the linear relationship between variance from the data and $\mu$, and $k$ is a scaling factor between the reported index and the mean from stox replicates. 
+      
+***
+
+## **Assumption of the data**
+When preparing the data so it can be used into the assessment, we need to do some assumptions. For the NSSH we have made the following assumptions:   
+
+1st assumption: 
+Typically, the catch at age data (see cn) we aggregate the catch at age per nations. 
+When the variance is to be computed we idealy need the 'raw' data, but, this is currently only avaliable for only the Norwegian data. 
+Since the Norwegian quota represent a larger part of the TAC, we assume that the variance estimated from the Norwegian catch can be populated for the whole catch. This is done by adding a scaling factor k in the equation above.
+
+2nd assumption: 
+For the Catch at age data we only have variance estimates from 2011. To 'fill' inn the missing data we assume the taylor approximation is valid backwards in time, and use estimats from the taylor approximation to fill inn the missing data.
+
+## **How does this weight the inputdata?**
+the weight of the input data is set to be the inverce of its variance. From the figure we can clearly see a pattern in the inverce variance. 
+
+* What does this information indicate? 
+
+![Weights](DataWeight_Catch_2.png)
+
+
+## **Some warnings**
+For many assessment, there exist assumptions regarding the data. It is cruical to test these assumptions. 
+Underneath we illustrate the assumption if we can use the taylor approximation. 
+
+
+For the mai survey, the survey has been designed in an standardized manner.
+<details>  
+  <summary>Looking at the RSE for the mai survey</summary>
+
+```r
+replicate = read.csv('Herring/Variance/gyt_replicate.txt')
+replicate<-replicate[replicate$year>=2015,]
+ggplot(data=replicate,aes(x=age,y=RSE,group=year,colour=year))+geom_line()+ggsave('Gyt2015.png')
+
+
+replicate = read.csv('Herring/Variance/gyt_replicate.txt')
+replicate<-replicate[replicate$year<2015,]
+year_i <- unique(replicate$year)
+ggplot(data=replicate,aes(x=age,y=RSE,group=year,colour=year))+geom_line()+ggsave('Gyt.png')
+
+
+
+replicate = read.csv('Herring/Variance/mai_replicate.txt')
+ggplot(data=replicate,aes(x=age,y=RSE,group=year,colour=year))+geom_line()+ggsave('Mai.png')
+
+```
+
+</details>
+
+![Mai survey](Mai.png)
+
+For the spawning survey, the survey has been designed in a standardized manner since 2015. In 2016 the distribution of the herring was unfavorable fassion, resulting a higher uncertainty. This can be spotted in the RSE per age. 
+<details>  
+  <summary>Looking at the RSE for the spawning survey (2015 - 2019)</summary>
+```r
+replicate<-replicate[replicate$year>=2015,]
+ggplot(data=replicate,aes(x=age,y=RSE,group=year,colour=year))+geom_line()
+```
+</details>
+![Spawning survey (2015-2019)](Gyt2015.png)
+Before 2015, the spawing survey was not conducted in a standardized manner. I.e. the design where different, as well as the timing and the covered area. we see the RSE is quite different than for the same survey but from 2015. 
+
+* What will happen if we use use the taylor approximation? 
+* What happen if we assume the spawning survey to be two different timeseries? 
+* What happen if we remove the data before 2015?
+
+<details>  
+  <summary>Looking at the RSE for the spawning survey (before 2015)</summary>
+```r
+replicate<-replicate[replicate$year<2015,]
+ggplot(data=replicate,aes(x=age,y=RSE,group=year,colour=year))+geom_line()
+```
+</details>
+![Spawning survey (before 2015)](Gyt.png)
+
+
+
+
+
+## **Exploration** 
+  <summary>Looking at data</summary>
+```r
+
+library(knitr)
+kable(surveys$SpawninggroundsalongtheNorwegiancoast)
+
+
+```
+
+
+```r
+PlotCohort(surveys$SpawninggroundsalongtheNorwegiancoast[25:32,]*1000)
+internalConsistancy(dat<-surveys$SpawninggroundsalongtheNorwegiancoast[25:32,])
+
+```
+***
+
+

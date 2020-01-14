@@ -1,6 +1,8 @@
 #R-version used:  2.3.1 (2006-06-01)
 #First load these libraries from within R before proceeding
 library(FLCore)             #version 1.3-3
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+
 library(FLAssess)           #version 1.2-1
 #library(FLSURBA)            #version 1.2-2 (not used below)
 #library(FLXSA)              #version 1.2-2 (not used below)
@@ -11,14 +13,14 @@ library(MASS)
 library(lattice)
 library(grid)
 old.par <- par(no.readonly = TRUE)
-source("C:\\Users\\NW03\\Documents\\MA011A Stock assess\\WGNSSK\\2016\\software\\FLRscripts\\cdd Survey scripts.r")
-source("C:\\Users\\NW03\\Documents\\MA011A Stock assess\\WGNSSK\\2016\\software\\FLRscripts\\Corplots_CMillar.r")
+source("cdd Survey scripts.r")
+source("Corplots_CMillar.r")
 #setwd("C:\\Users\\jd02\\Documents\\current\\ICES WGs\\wgnssk\\2015\\prescreening\\FLRplots\\")
-path<-"C:\\Users\\NW03\\Documents\\MA011A Stock assess\\WGNSSK\\2016\\report\\figures\\"
-path2<-"C:\\Users\\NW03\\Documents\\MA011A Stock assess\\WGNSSK\\2016\\data\\assess\\Old format\\"
-path3<-"C:\\Users\\NW03\\Documents\\MA011A Stock assess\\WGNSSK\\2016\\data\\prescreening\\"
+path<-""
+path2<-""
+path3<-""
 
-cod <- read.FLStock(paste(path2,"Cod347.idx",sep=""))
+cod <- readFLStock(paste(path2,"Cod347.idx",sep=""))
 cod.tun <- read.FLIndices(paste(path3,"Cod347_2016.dat",sep=""))     # Q3 age set to 5 for extra plots
 
 units(harvest(cod)) <- "f"
