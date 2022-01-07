@@ -79,12 +79,14 @@ mtext("Retro standard settings", line = 2,at = 2003, cex = 2.5)
 plot(retroCurrent)
 mtext("Retro current settings",  line = 2,at = 2003, cex = 2.5)
 
+
+#NB, leavout currently not working when fixing model parameters
 leaveoutStandard= leaveout(fitStandard)
 plot(leaveoutStandard)
 mtext("Leaveout standard settings",  line = 2,at = 2003, cex = 2.5)
-leaveoutCurrent= leaveout(fitCurrent)
-plot(leaveoutCurrent)
-mtext("Leaveout current settings",  line = 2,at = 2003, cex = 2.5)
+#leaveoutCurrent= leaveout(fitCurrent)
+#plot(leaveoutCurrent)
+#mtext("Leaveout current settings",  line = 2,at = 2003, cex = 2.5)
 
 
 
@@ -92,7 +94,7 @@ mtext("Leaveout current settings",  line = 2,at = 2003, cex = 2.5)
 #Forecast #Note needs developmentversion of SAM
 #devtools::install_github("fishfollower/SAM/stockassessment",ref = "forecastWeightedF")
 set.seed(12345)
-forecast(fitCurrent,catchval.exact = c(773.750,NA,NA),fBarW = c(NA,0.14,0.14),nosim = 1000,ave.years = c(2016,2017,2018)) 
+forecast(fitCurrent,catchval.exact = c(773.750,NA,NA),fBarW = c(NA,0.14,0.14),nosim = 1000,ave.years = c(2016,2017,2018))
 
 
 
@@ -136,4 +138,4 @@ par<-defpar(dat,conf)
 fitNew<-sam.fit(dat,conf,par)
 
 AIC(fitStandard,fitCurrent,fitNew)
-corplot(fitNew)#Plot the internally estimated correlation structure  
+corplot(fitNew)#Plot the internally estimated correlation structure
